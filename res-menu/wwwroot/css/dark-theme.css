@@ -1,0 +1,189 @@
+:root {
+    --dark-bg: #1a1a1a;
+    --darker-bg: #121212;
+    --dark-card: #242424;
+    --dark-text: #e0e0e0;
+    --dark-text-muted: #a0a0a0;
+    --dark-border: #333333;
+    --dark-primary: #0d6efd;
+    --dark-primary-hover: #0b5ed7;
+}
+
+body.dark-theme {
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+}
+
+.dark-theme .navbar {
+    background-color: var(--darker-bg) !important;
+    border-bottom: 1px solid var(--dark-border);
+}
+
+.dark-theme .navbar-brand,
+.dark-theme .nav-link {
+    color: var(--dark-text) !important;
+}
+
+.dark-theme .nav-link:hover {
+    color: var(--dark-primary) !important;
+}
+
+.dark-theme .card {
+    background-color: var(--dark-card);
+    border-color: var(--dark-border);
+    color: var(--dark-text);
+}
+
+.dark-theme .card-title {
+    color: var(--dark-text);
+}
+
+.dark-theme .text-muted {
+    color: var(--dark-text-muted) !important;
+}
+
+.dark-theme .btn-outline-primary {
+    color: var(--dark-primary);
+    border-color: var(--dark-primary);
+}
+
+.dark-theme .btn-outline-primary:hover {
+    background-color: var(--dark-primary);
+    color: white;
+}
+
+.dark-theme .form-control {
+    background-color: var(--darker-bg);
+    border-color: var(--dark-border);
+    color: var(--dark-text);
+}
+
+.dark-theme .form-control:focus {
+    background-color: var(--darker-bg);
+    color: var(--dark-text);
+    border-color: var(--dark-primary);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.dark-theme .input-group-text {
+    background-color: var(--dark-card);
+    border-color: var(--dark-border);
+    color: var(--dark-text);
+}
+
+.dark-theme .table {
+    color: var(--dark-text);
+}
+
+.dark-theme .table td,
+.dark-theme .table th {
+    border-color: var(--dark-border);
+}
+
+.dark-theme .modal-content {
+    background-color: var(--dark-card);
+    border-color: var(--dark-border);
+}
+
+.dark-theme .modal-header {
+    border-bottom-color: var(--dark-border);
+}
+
+.dark-theme .modal-footer {
+    border-top-color: var(--dark-border);
+}
+
+.dark-theme .list-unstyled {
+    color: var(--dark-text);
+}
+
+.theme-switch {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    padding: 10px;
+    border-radius: 50%;
+    background-color: var(--dark-primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-switch:hover {
+    background-color: var(--dark-primary-hover);
+}
+
+/* Dark theme variables */
+:root[data-theme="dark"] {
+    --primary: #60a5fa;
+    --primary-hover: #3b82f6;
+    --background: #1a1a1a;
+    --card-bg: #242424;
+    --text: #ffffff;
+    --text-secondary: #e5e7eb;
+    --text-muted: #d1d5db;
+    --border: #404040;
+}
+
+/* Light theme variables */
+:root[data-theme="light"] {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --background: #f8fafc;
+    --card-bg: #ffffff;
+    --text: #1a1a1a;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+}
+
+/* Base text color for all elements */
+[data-theme="dark"] {
+    color: var(--text);
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6,
+[data-theme="dark"] .h1,
+[data-theme="dark"] .h2,
+[data-theme="dark"] .h3,
+[data-theme="dark"] .h4,
+[data-theme="dark"] .h5,
+[data-theme="dark"] .h6 {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] p {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .card {
+    color: var(--text);
+}
+
+[data-theme="dark"] .card-title,
+[data-theme="dark"] .card h3,
+[data-theme="dark"] .card h4,
+[data-theme="dark"] .card .h3,
+[data-theme="dark"] .card .h4 {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .card p {
+    color: var(--text-secondary) !important;
+} 

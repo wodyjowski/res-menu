@@ -1,0 +1,98 @@
+@page
+@model res_menu.Pages.Restaurant.CreateRestaurantModel
+@{
+    ViewData["Title"] = "Create Restaurant";
+}
+
+<div class="container">
+    <h2 class="mb-4">Create Your Restaurant Profile</h2>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    @if (!ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="form-group mb-3">
+                            <label asp-for="Restaurant.Name" class="form-label">Restaurant Name</label>
+                            <input asp-for="Restaurant.Name" class="form-control" required />
+                            <span asp-validation-for="Restaurant.Name" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Restaurant.Subdomain" class="form-label">Subdomain</label>
+                            <div class="input-group">
+                                <input asp-for="Restaurant.Subdomain" class="form-control" required 
+                                       pattern="[a-zA-Z0-9-]+" title="Only letters, numbers, and hyphens are allowed"
+                                       placeholder="e.g., my-restaurant" />
+                                <span class="input-group-text">.mypage.com</span>
+                            </div>
+                            <span asp-validation-for="Restaurant.Subdomain" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                This will be your restaurant's unique URL (e.g., my-restaurant.mypage.com).
+                                Only letters, numbers, and hyphens are allowed.
+                            </small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Restaurant.Description" class="form-label">Description</label>
+                            <textarea asp-for="Restaurant.Description" class="form-control" rows="3"
+                                    placeholder="Tell us about your restaurant..."></textarea>
+                            <span asp-validation-for="Restaurant.Description" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label asp-for="LogoFile" class="form-label">Restaurant Logo</label>
+                            <input type="file" asp-for="LogoFile" class="form-control" accept="image/*" />
+                            <span asp-validation-for="LogoFile" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Upload your restaurant's logo (optional). Supported formats: JPG, PNG, GIF
+                            </small>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Create Restaurant</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Tips</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">✨ Choose a memorable name</li>
+                        <li class="mb-2">🌐 Pick a simple subdomain</li>
+                        <li class="mb-2">📝 Add a detailed description</li>
+                        <li>🖼️ Upload a high-quality logo</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Client-side validation for subdomain
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const subdomainInput = document.querySelector('#Restaurant_Subdomain');
+            const subdomain = subdomainInput.value;
+            
+            if (!/^[a-zA-Z0-9-]+$/.test(subdomain)) {
+                e.preventDefault();
+                alert('Subdomain can only contain letters, numbers, and hyphens.');
+                subdomainInput.focus();
+            }
+        });
+    </script>
+} 

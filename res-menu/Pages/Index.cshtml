@@ -1,0 +1,196 @@
+﻿@page
+@model res_menu.Pages.IndexModel
+@{
+    ViewData["Title"] = "Restaurant Menu System";
+}
+
+<div class="container">
+    <div class="text-center mt-5">
+        <h1 class="display-3 fw-bold mb-4">Restaurant Menu System</h1>
+        <p class="lead fs-4 mb-5">Elevate your restaurant's digital presence with our professional menu management system</p>
+    </div>
+
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-body p-5 text-center">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <h2 class="h3 mb-4">Dashboard</h2>
+                        <p class="mb-4">Welcome to your restaurant management portal</p>
+                        <div class="d-grid gap-3">
+                            <a asp-page="/Restaurant/ManageMenu" class="btn btn-primary btn-lg">
+                                <i class="bi bi-list-check me-2"></i>Manage Menu
+                            </a>
+                            @if (Model.Restaurant != null)
+                            {
+                                var isLocalhost = Request.Host.Host == "localhost" || Request.Host.Host.StartsWith("127.") || Request.Host.Host.StartsWith("192.168.");
+                                var menuUrl = isLocalhost
+                                    ? $"{Request.Scheme}://{Request.Host}/Menu?subdomain={Model.Restaurant.Subdomain}"
+                                    : $"{Request.Scheme}://{Model.Restaurant.Subdomain}.{Request.Host}";
+                                <a href="@menuUrl" class="btn btn-outline-primary" target="_blank">
+                                    <i class="bi bi-eye me-2"></i>Preview Menu
+                                </a>
+                                <div class="mt-4">
+                                    <h5>Menu QR Code</h5>
+                                    <div class="qr-container mb-3">
+                                        <div id="qrcode"></div>
+                                    </div>
+                                    <button class="btn btn-outline-primary" onclick="downloadQR()">
+                                        <i class="bi bi-download me-2"></i>Download QR Code
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <h2 class="h3 mb-4">Get Started Today</h2>
+                        <p class="mb-4">Create your restaurant profile and start managing your menu!</p>
+                        <div class="d-grid gap-3">
+                            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary btn-lg">
+                                <i class="bi bi-person-plus me-2"></i>Register
+                            </a>
+                            <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5 g-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-body p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="bi bi-pencil-square fs-1 text-primary"></i>
+                    </div>
+                    <h3 class="h4 mb-3">Professional Menu Management</h3>
+                    <p class="text-muted">
+                        Create and manage your restaurant's menu with our intuitive interface.
+                        Organize items, set prices, and update in real-time.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-body p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="bi bi-link-45deg fs-1 text-primary"></i>
+                    </div>
+                    <h3 class="h4 mb-3">Custom Domain</h3>
+                    <p class="text-muted">
+                        Get your own branded URL for your menu. Share it easily
+                        across all your marketing channels and social media.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-body p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="bi bi-phone fs-1 text-primary"></i>
+                    </div>
+                    <h3 class="h4 mb-3">Responsive Design</h3>
+                    <p class="text-muted">
+                        Your menu looks perfect on all devices with our modern,
+                        mobile-first design and customizable themes.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @if (Model.Restaurant != null)
+            {
+                <text>
+                const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname.startsWith('127.') || window.location.hostname.startsWith('192.168.');
+                const menuUrl = isLocalhost
+                    ? '@($"{Request.Scheme}://{Request.Host}/Menu?subdomain={Model.Restaurant.Subdomain}")'
+                    : '@($"{Request.Scheme}://{Model.Restaurant.Subdomain}.{Request.Host}")';
+                const qr = qrcode(0, 'M');
+                qr.addData(menuUrl);
+                qr.make();
+                document.getElementById('qrcode').innerHTML = qr.createImgTag(5);
+
+                window.downloadQR = function() {
+                    const img = document.querySelector("#qrcode img");
+                    if (img) {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = 'var(--card-bg)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0);
+                        
+                        const link = document.createElement('a');
+                        link.download = 'menu-qr.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    }
+                };
+                </text>
+            }
+        });
+    </script>
+    <style>
+        .hover-card {
+            transition: transform 0.3s ease-in-out;
+        }
+        .hover-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-icon {
+            background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #1b6ec2 0%, #1861ac 100%);
+            border: none;
+            padding: 12px 24px;
+        }
+        .btn-outline-primary {
+            border-color: #1b6ec2;
+            padding: 12px 24px;
+        }
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #1b6ec2 0%, #1861ac 100%);
+            border: none;
+        }
+        .qr-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            background: var(--card-bg);
+            border-radius: 8px;
+            margin: 0 auto;
+        }
+        #qrcode {
+            display: inline-block;
+            line-height: 0;
+        }
+        #qrcode img {
+            display: block;
+            background-color: var(--card-bg);
+        }
+    </style>
+}

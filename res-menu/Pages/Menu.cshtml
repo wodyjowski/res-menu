@@ -1,0 +1,205 @@
+@page
+@model res_menu.Pages.MenuModel
+@{
+    ViewData["Title"] = Model.Restaurant?.Name ?? "Menu";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/css/dark-theme.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/res_menu.styles.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background);
+            color: var(--text);
+        }
+        
+        main {
+            flex: 1;
+            background-color: var(--background);
+        }
+
+        .menu-header {
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            background-color: var(--card-bg);
+        }
+        
+        .menu-category {
+            margin-bottom: 3rem;
+        }
+
+        .menu-category h2 {
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+        
+        .menu-item {
+            border-radius: 10px;
+            transition: transform 0.2s ease-in-out;
+            height: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+        }
+        
+        .menu-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .menu-item img {
+            border-radius: 10px 10px 0 0;
+            object-fit: cover;
+            width: 100%;
+            height: 200px;
+        }
+        
+        .menu-item-title {
+            color: var(--text);
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .menu-item-description {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        
+        .price {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .restaurant-logo {
+            max-height: 150px;
+            object-fit: contain;
+        }
+        
+        .restaurant-name {
+            color: var(--text);
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+        
+        .restaurant-description {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        footer {
+            margin-top: auto;
+            padding: 1rem 0;
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+        }
+
+        .alert {
+            background-color: var(--card-bg);
+            border-color: var(--border);
+            color: var(--text);
+        }
+    </style>
+</head>
+<body>
+    <main>
+        @if (Model.Restaurant == null)
+        {
+            <div class="container text-center mt-5">
+                <div class="alert alert-warning">
+                    <h3><i class="bi bi-exclamation-triangle me-2"></i>Restaurant Not Found</h3>
+                    <p class="mb-0">The restaurant you're looking for doesn't exist or the URL might be incorrect.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="menu-header">
+                <div class="container text-center">
+                    @if (!string.IsNullOrEmpty(Model.Restaurant.LogoUrl))
+                    {
+                        <img src="@Model.Restaurant.LogoUrl" alt="@Model.Restaurant.Name Logo" 
+                             class="restaurant-logo mb-3" />
+                    }
+                    <h1 class="restaurant-name">@Model.Restaurant.Name</h1>
+                    @if (!string.IsNullOrEmpty(Model.Restaurant.Description))
+                    {
+                        <p class="restaurant-description">@Model.Restaurant.Description</p>
+                    }
+                </div>
+            </div>
+
+            <div class="container">
+                @if (!Model.MenuItems.Any())
+                {
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle me-2"></i>Menu items coming soon!
+                    </div>
+                }
+                else
+                {
+                    var categories = Model.MenuItems
+                        .Where(m => m.IsAvailable)
+                        .Select(m => m.Category)
+                        .Distinct()
+                        .OrderBy(c => c);
+
+                    foreach (var category in categories)
+                    {
+                        var categoryItems = Model.MenuItems
+                            .Where(m => m.Category == category && m.IsAvailable)
+                            .OrderBy(m => m.Name);
+
+                        <div class="menu-category mb-5">
+                            <h2>@category</h2>
+                            <div class="row g-4">
+                                @foreach (var item in categoryItems)
+                                {
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="menu-item">
+                                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                            {
+                                                <img src="@item.ImageUrl" alt="@item.Name" class="img-fluid" />
+                                            }
+                                            <div class="p-3">
+                                                <h3 class="menu-item-title">@item.Name</h3>
+                                                <p class="menu-item-description">@item.Description</p>
+                                                <div class="price">@item.Price.ToString("C")</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </main>
+
+    <footer>
+        <div class="container text-center">
+            &copy; @DateTime.Now.Year - Powered by Restaurant Menu System
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</body>
+</html> 

@@ -1,0 +1,7 @@
+﻿services:
+  res-menu:
+    image: res-menu
+    build:
+      context: .
+      dockerfile: res-menu/Dockerfile
+
