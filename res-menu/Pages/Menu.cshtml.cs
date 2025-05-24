@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using res_menu.Data;
 using res_menu.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace res_menu.Pages;
 
+[AllowAnonymous]
 public class MenuModel : PageModel
 {
     private readonly ApplicationDbContext _context;
@@ -32,13 +34,15 @@ public class MenuModel : PageModel
         }
         else
         {
-            // In production, try to get subdomain from host first
-            subdomain = host.Count(c => c == '.') > 1 ? host.Split('.')[0] : Request.Query["subdomain"].ToString();
+            // In production, try to get subdomain from host first, then fallback to query string
+            subdomain = host.Count(c => c == '.') > 1 
+                ? host.Split('.')[0] 
+                : Request.Query["subdomain"].ToString();
         }
 
         if (string.IsNullOrEmpty(subdomain))
         {
-            return NotFound();
+            return NotFound("Restaurant not found. Please check the URL.");
         }
 
         Restaurant = await _context.Restaurants
@@ -46,11 +50,11 @@ public class MenuModel : PageModel
 
         if (Restaurant == null)
         {
-            return Page();
+            return NotFound("Restaurant not found. Please check the URL.");
         }
 
         MenuItems = await _context.MenuItems
-            .Where(m => m.RestaurantId == Restaurant.Id)
+            .Where(m => m.RestaurantId == Restaurant.Id && m.IsAvailable)
             .OrderBy(m => m.Category)
             .ThenBy(m => m.Name)
             .ToListAsync();

@@ -75,9 +75,17 @@ builder.Services.ConfigureApplicationCookie(options => {
     options.LoginPath = "/Identity/Account/Login";
     options.LogoutPath = "/Identity/Account/Logout";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    options.Cookie.Name = "res_menu_auth";
+    options.Cookie.HttpOnly = true;
+    options.ExpireTimeSpan = TimeSpan.FromDays(30);
+    options.SlidingExpiration = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages(options => {
+    // Make Menu page publicly accessible
+    options.Conventions.AllowAnonymousToPage("/Menu");
+});
 
 var app = builder.Build();
 
