@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Ob1FyK2MG/gLVu7Qtv9+jmCDx0m3lLs5y84UVdru54o=",
+  "Hash": "jTQSvzz8D1goNLWOUA6a3PSRYLl49pmhlSJufsZqlB8=",
   "Source": "res-menu",
   "BasePath": "_content/res-menu",
   "Mode": "Default",
@@ -5307,6 +5307,27 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\lib\\jquery\\LICENSE.txt"
+    },
+    {
+      "Identity": "C:\\Users\\wodyjowski\\source\\repos\\res-menu\\res-menu\\wwwroot\\uploads\\logos\\0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images.png",
+      "SourceId": "res-menu",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\wodyjowski\\source\\repos\\res-menu\\res-menu\\wwwroot\\",
+      "BasePath": "_content/res-menu",
+      "RelativePath": "uploads/logos/0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images#[.{fingerprint}]?.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "h5li8ds2h8",
+      "Integrity": "ayiY5Z5u0erCFPto7wce6x1IbAq5YuceIACTbv+9QfU=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\logos\\0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images.png"
     },
     {
       "Identity": "C:\\Users\\wodyjowski\\source\\repos\\res-menu\\res-menu\\wwwroot\\uploads\\menu-items\\8634cc1f-6a17-42f5-ad55-e5a6856bf056_images.png",
@@ -33219,6 +33240,88 @@
         {
           "Name": "integrity",
           "Value": "sha256-vq9ebpd3pE9clOS6YsOr7BjzoEV1W0aFm628zxhy2F8="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/logos/0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images.h5li8ds2h8.png",
+      "AssetFile": "C:\\Users\\wodyjowski\\source\\repos\\res-menu\\res-menu\\wwwroot\\uploads\\logos\\0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "5469"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ayiY5Z5u0erCFPto7wce6x1IbAq5YuceIACTbv+9QfU=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 24 May 2025 21:53:24 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "h5li8ds2h8"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/logos/0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images.png"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-ayiY5Z5u0erCFPto7wce6x1IbAq5YuceIACTbv+9QfU="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/logos/0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images.png",
+      "AssetFile": "C:\\Users\\wodyjowski\\source\\repos\\res-menu\\res-menu\\wwwroot\\uploads\\logos\\0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "5469"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ayiY5Z5u0erCFPto7wce6x1IbAq5YuceIACTbv+9QfU=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 24 May 2025 21:53:24 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-ayiY5Z5u0erCFPto7wce6x1IbAq5YuceIACTbv+9QfU="
         }
       ]
     },

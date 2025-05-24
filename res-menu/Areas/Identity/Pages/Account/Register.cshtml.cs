@@ -25,17 +25,14 @@ namespace res_menu.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly IUserStore<IdentityUser> _userStore;
         private readonly ILogger<RegisterModel> _logger;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
-            IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger)
         {
             _userManager = userManager;
-            _userStore = userStore;
             _signInManager = signInManager;
             _logger = logger;
         }
@@ -72,7 +69,16 @@ namespace res_menu.Areas.Identity.Pages.Account
             [Required]
             [Display(Name = "Username")]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+            [RegularExpression(@"^[a-zA-Z0-9-._@+]+$", ErrorMessage = "Username can only contain letters, numbers, and the following characters: - . _ @ +")]
             public string Username { get; set; }
+
+            /// <summary>
+            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+            ///     directly from your code. This API may change or be removed in future releases.
+            /// </summary>
+            [EmailAddress]
+            [Display(Name = "Email")]
+            public string Email { get; set; }
 
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -97,18 +103,27 @@ namespace res_menu.Areas.Identity.Pages.Account
         public async Task OnGetAsync(string returnUrl = null)
         {
             ReturnUrl = returnUrl;
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = CreateUser();
+                // Check if username is already taken
+                var existingUser = await _userManager.FindByNameAsync(Input.Username);
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError("Input.Username", "Username is already taken.");
+                    return Page();
+                }
 
-                await _userStore.SetUserNameAsync(user, Input.Username, CancellationToken.None);
+                var user = new IdentityUser { UserName = Input.Username };
+                if (!string.IsNullOrEmpty(Input.Email))
+                {
+                    user.Email = Input.Email;
+                }
+
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
@@ -124,22 +139,7 @@ namespace res_menu.Areas.Identity.Pages.Account
                 }
             }
 
-            // If we got this far, something failed, redisplay form
             return Page();
-        }
-
-        private IdentityUser CreateUser()
-        {
-            try
-            {
-                return Activator.CreateInstance<IdentityUser>();
-            }
-            catch
-            {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(IdentityUser)}'. " +
-                    $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                    $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
-            }
         }
     }
 }

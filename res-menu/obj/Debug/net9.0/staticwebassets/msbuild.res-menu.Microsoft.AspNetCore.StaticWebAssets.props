@@ -1188,6 +1188,24 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\res-menu.mq5ct284u2.bundle.scp.css'))</OriginalItemSpec>
     </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\logos\0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images.png'))">
+      <SourceType>Package</SourceType>
+      <SourceId>res-menu</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/res-menu</BasePath>
+      <RelativePath>uploads/logos/0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images.png</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>h5li8ds2h8</Fingerprint>
+      <Integrity>ayiY5Z5u0erCFPto7wce6x1IbAq5YuceIACTbv+9QfU=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\logos\0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images.png'))</OriginalItemSpec>
+    </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\menu-items\8634cc1f-6a17-42f5-ad55-e5a6856bf056_images.png'))">
       <SourceType>Package</SourceType>
       <SourceId>res-menu</SourceId>

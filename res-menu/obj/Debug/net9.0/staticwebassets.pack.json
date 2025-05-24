@@ -265,6 +265,10 @@
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.slim.min.map"
     },
     {
+      "Id": "C:\\Users\\wodyjowski\\source\\repos\\res-menu\\res-menu\\wwwroot\\uploads\\logos\\0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images.png",
+      "PackagePath": "staticwebassets\\uploads\\logos\\0a0081b7-7581-4dcb-9d92-27e58e04ffc3_images.png"
+    },
+    {
       "Id": "C:\\Users\\wodyjowski\\source\\repos\\res-menu\\res-menu\\wwwroot\\uploads\\menu-items\\8634cc1f-6a17-42f5-ad55-e5a6856bf056_images.png",
       "PackagePath": "staticwebassets\\uploads\\menu-items\\8634cc1f-6a17-42f5-ad55-e5a6856bf056_images.png"
     },

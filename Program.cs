@@ -73,8 +73,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => {
     options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders()
-.AddDefaultUI();
+.AddDefaultTokenProviders();
 
 builder.Services.ConfigureApplicationCookie(options => {
     options.LoginPath = "/Identity/Account/Login";
