@@ -25,13 +25,15 @@ if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("p
         Database = uri.AbsolutePath.TrimStart('/'),
         Username = userInfo[0],
         Password = userInfo[1],
-        SslMode = Npgsql.SslMode.Require,
+        SslMode = Npgsql.SslMode.Prefer,
         TrustServerCertificate = true
     }.ToString();
 }
 
-// If running in development and the host is "postgres", change it to "localhost"
-if (builder.Environment.IsDevelopment() && connectionString.Contains("Host=postgres"))
+// Only change postgres to localhost in development AND when not running in Docker
+if (builder.Environment.IsDevelopment() && 
+    !Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER").Equals("true", StringComparison.OrdinalIgnoreCase) && 
+    connectionString.Contains("Host=postgres"))
 {
     connectionString = connectionString.Replace("Host=postgres", "Host=localhost");
 }

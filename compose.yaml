@@ -1,21 +1,18 @@
 ﻿version: '3.8'
 
 services:
-  web:
-    build:
-      context: ./res-menu
-      dockerfile: Dockerfile
-    container_name: res-menu-web
+  res-menu:
+    container_name: res-menu
+    image: "ghcr.io/wodyjowski/res-menu:master"
     ports:
-      - "8080:80"
-      - "8443:443"
+      - 8888:8080
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/res_menu
     depends_on:
       postgres:
         condition: service_healthy
-    restart: unless-stopped
     networks:
       - res-menu-network
 
@@ -26,8 +23,6 @@ services:
       POSTGRES_DB: res_menu
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
