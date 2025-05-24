@@ -159,8 +159,7 @@ app.Use(async (context, next) =>
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Configure endpoints
-app.MapRazorPages();
+app.MapRazorPages().AllowAnonymous();
 
 // Make Menu page publicly accessible
 app.MapGet("/Menu", () => Results.Page("/Menu")).AllowAnonymous();
