@@ -12,12 +12,6 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
     throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// If running in development and the host is "postgres", change it to "localhost"
-if (builder.Environment.IsDevelopment() && connectionString.Contains("Host=postgres"))
-{
-    connectionString = connectionString.Replace("Host=postgres", "Host=localhost");
-}
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(connectionString, npgsqlOptions =>

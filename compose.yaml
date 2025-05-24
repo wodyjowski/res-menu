@@ -9,7 +9,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/res_menu
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=res_menu;Username=postgres;Password=postgres;Port=5432
     depends_on:
       postgres:
         condition: service_healthy

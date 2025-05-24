@@ -9,9 +9,15 @@ using System.Net.Sockets;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? 
-    builder.Configuration.GetConnectionString("DefaultConnection") ?? 
-    throw new InvalidOperationException("Connection string not found. Please set either DATABASE_URL environment variable or DefaultConnection in configuration.");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
+    Environment.GetEnvironmentVariable("DATABASE_URL") ?? 
+    throw new InvalidOperationException("Connection string not found. Please set either DefaultConnection in configuration or DATABASE_URL environment variable.");
+
+// Log the connection string (without credentials) at startup
+var sanitizedConnectionString = connectionString.Contains("@") 
+    ? new Uri(connectionString).Host 
+    : connectionString.Replace(";Password=", ";Password=***").Replace(";User Id=", ";User Id=***").Replace(";Username=", ";Username=***");
+Console.WriteLine($"Using database connection: {sanitizedConnectionString}");
 
 // If the connection string is a Heroku-style URL (postgres://user:pass@host:port/db)
 if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
