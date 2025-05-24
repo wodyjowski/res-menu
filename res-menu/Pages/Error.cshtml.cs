@@ -8,10 +8,6 @@ namespace res_menu.Pages;
 [IgnoreAntiforgeryToken]
 public class ErrorModel : PageModel
 {
-    public string? RequestId { get; set; }
-
-    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-
     private readonly ILogger<ErrorModel> _logger;
 
     public ErrorModel(ILogger<ErrorModel> logger)
@@ -19,8 +15,18 @@ public class ErrorModel : PageModel
         _logger = logger;
     }
 
-    public void OnGet()
+    public string? RequestId { get; set; }
+    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    public bool IsDbError { get; set; }
+
+    public void OnGet(string? errorType = null)
     {
         RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+        IsDbError = errorType == "database";
+        
+        if (IsDbError)
+        {
+            _logger.LogError("Database connection error detected. RequestId: {RequestId}", RequestId);
+        }
     }
 }

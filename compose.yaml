@@ -1,7 +1,41 @@
-﻿services:
-  res-menu:
-    image: res-menu
+﻿version: '3.8'
+
+services:
+  web:
     build:
-      context: .
-      dockerfile: res-menu/Dockerfile
+      context: ./res-menu
+      dockerfile: Dockerfile
+    container_name: res-menu-web
+    ports:
+      - "8080:80"
+      - "8443:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=res_menu;Username=postgres;Password=postgres
+      - ConnectionStrings__IdentityDataContextConnection=Host=postgres;Database=res_menu;Username=postgres;Password=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: res-menu-db
+    environment:
+      POSTGRES_DB: res_menu
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    name: res-menu-postgres-data
 

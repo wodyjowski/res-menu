@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("res-menu")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fc4ed4586b177b1859385a7265f62471901dabb1")]
 [assembly: System.Reflection.AssemblyProductAttribute("res-menu")]
 [assembly: System.Reflection.AssemblyTitleAttribute("res-menu")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
