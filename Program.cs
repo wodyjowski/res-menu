@@ -9,8 +9,26 @@ using System.Net.Sockets;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
-    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? 
+    builder.Configuration.GetConnectionString("DefaultConnection") ?? 
+    throw new InvalidOperationException("Connection string not found. Please set either DATABASE_URL environment variable or DefaultConnection in configuration.");
+
+// If the connection string is a Heroku-style URL (postgres://user:pass@host:port/db)
+if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
+{
+    var uri = new Uri(connectionString);
+    var userInfo = uri.UserInfo.Split(':');
+    connectionString = new NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.Port,
+        Database = uri.AbsolutePath.TrimStart('/'),
+        Username = userInfo[0],
+        Password = userInfo[1],
+        SslMode = Npgsql.SslMode.Require,
+        TrustServerCertificate = true
+    }.ToString();
+}
 
 // If running in development and the host is "postgres", change it to "localhost"
 if (builder.Environment.IsDevelopment() && connectionString.Contains("Host=postgres"))

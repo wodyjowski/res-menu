@@ -17,7 +17,13 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - res-menu-network
 
 volumes:
   postgres_data:
-    name: res-menu-postgres-data 
+    name: res-menu-postgres-data
+
+networks:
+  res-menu-network:
+    name: res-menu-network 
