@@ -5,8 +5,42 @@ using res_menu.Areas.Identity.Data;
 using Microsoft.AspNetCore.Http.Extensions;
 using Npgsql;
 using System.Net.Sockets;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure culture for PLN currency
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { "pl-PL" };
+    options.SetDefaultCulture(supportedCultures[0])
+        .AddSupportedCultures(supportedCultures)
+        .AddSupportedUICultures(supportedCultures);
+});
+
+// Configure Kestrel to use HTTPS
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(80); // HTTP
+    serverOptions.ListenAnyIP(443, listenOptions =>
+    {
+        listenOptions.UseHttps(httpsOptions =>
+        {
+            // Auto-generate development certificate if not in production
+            if (builder.Environment.IsDevelopment())
+            {
+                return;
+            }
+            
+            // In production, use Let's Encrypt certificate
+            var certPath = "/etc/letsencrypt/live/res-menu.duckdns.org/fullchain.pem";
+            var keyPath = "/etc/letsencrypt/live/res-menu.duckdns.org/privkey.pem";
+            
+            httpsOptions.ServerCertificateFile = certPath;
+            httpsOptions.ServerCertificatePrivateKeyFile = keyPath;
+        });
+    });
+});
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
@@ -134,6 +168,9 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+// Add localization middleware at the beginning of the pipeline
+app.UseRequestLocalization();
 
 // Add database error handling middleware
 app.Use(async (context, next) =>

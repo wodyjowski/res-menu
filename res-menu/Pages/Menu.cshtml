@@ -181,7 +181,7 @@
                                             <div class="p-3">
                                                 <h3 class="menu-item-title">@item.Name</h3>
                                                 <p class="menu-item-description">@item.Description</p>
-                                                <div class="price">@item.Price.ToString("C")</div>
+                                                <div class="price">@item.Price.ToString("C", new System.Globalization.CultureInfo("pl-PL"))</div>
                                             </div>
                                         </div>
                                     </div>
