@@ -139,22 +139,14 @@ app.Use(async (context, next) =>
     var host = context.Request.Host.Host.ToLower();
     var isLocalhost = host == "localhost" || host.StartsWith("127.") || host.StartsWith("192.168.");
     
-    if (!isLocalhost && host.Contains("."))
+    // Check if we're on a subdomain of res-menu.duckdns.org
+    if (!isLocalhost && host.EndsWith("res-menu.duckdns.org") && host != "res-menu.duckdns.org")
     {
-        // Extract subdomain from the first part of the domain
-        var parts = host.Split('.');
-        var subdomain = parts[0];
-        var isMainDomain = host == "res-menu.duckdns.org";
-        
-        // Only process if we have a subdomain and we're not on the main domain
-        if (!string.IsNullOrEmpty(subdomain) && !isMainDomain)
+        var subdomain = host.Split('.')[0];
+        if (!string.IsNullOrEmpty(subdomain))
         {
-            // Only rewrite root path to menu
-            if (context.Request.Path == "/" || string.IsNullOrEmpty(context.Request.Path))
-            {
-                context.Request.Path = "/Menu";
-                context.Request.QueryString = context.Request.QueryString.Add("subdomain", subdomain);
-            }
+            context.Request.Path = "/Menu";
+            context.Request.QueryString = context.Request.QueryString.Add("subdomain", subdomain);
         }
     }
     
