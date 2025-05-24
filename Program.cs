@@ -93,6 +93,40 @@ builder.Services.AddRazorPages(options => {
 
 var app = builder.Build();
 
+// Add error handling middleware at the beginning of the pipeline
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        logger.LogInformation(
+            "Starting request processing - Method: {Method}, Path: {Path}, Host: {Host}",
+            context.Request.Method,
+            context.Request.Path,
+            context.Request.Host.Value
+        );
+        
+        await next();
+        
+        logger.LogInformation(
+            "Request completed - Status Code: {StatusCode}",
+            context.Response.StatusCode
+        );
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(
+            ex,
+            "Error processing request - Method: {Method}, Path: {Path}, Host: {Host}, Error: {Error}",
+            context.Request.Method,
+            context.Request.Path,
+            context.Request.Host.Value,
+            ex.Message
+        );
+        throw;
+    }
+});
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -136,17 +170,36 @@ app.UseRouting();
 // Add subdomain routing middleware BEFORE authentication
 app.Use(async (context, next) =>
 {
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
     var host = context.Request.Host.Host.ToLower();
     var isLocalhost = host == "localhost" || host.StartsWith("127.") || host.StartsWith("192.168.");
+    
+    logger.LogInformation(
+        "Request received - Host: {Host}, Path: {Path}, IsLocalhost: {IsLocalhost}",
+        host,
+        context.Request.Path,
+        isLocalhost
+    );
     
     // Check if we're on a subdomain of res-menu.duckdns.org
     if (!isLocalhost && host.EndsWith("res-menu.duckdns.org") && host != "res-menu.duckdns.org")
     {
         var subdomain = host.Split('.')[0];
+        logger.LogInformation(
+            "Subdomain detected: {Subdomain}, Original Path: {OriginalPath}",
+            subdomain,
+            context.Request.Path
+        );
+        
         if (!string.IsNullOrEmpty(subdomain))
         {
             context.Request.Path = "/Menu";
             context.Request.QueryString = context.Request.QueryString.Add("subdomain", subdomain);
+            logger.LogInformation(
+                "Request rewritten - New Path: {NewPath}, QueryString: {QueryString}",
+                context.Request.Path,
+                context.Request.QueryString
+            );
         }
     }
     

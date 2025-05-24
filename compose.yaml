@@ -5,7 +5,7 @@ services:
     container_name: res-menu
     image: "ghcr.io/wodyjowski/res-menu:master"
     ports:
-      - 8888:8080
+      - "80:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - DOTNET_RUNNING_IN_CONTAINER=true
