@@ -140,9 +140,12 @@ app.Use(async (context, next) =>
         var subdomain = host.Split('.')[0];
         if (!string.IsNullOrEmpty(subdomain))
         {
-            var originalPath = context.Request.Path;
-            context.Request.Path = "/Menu";
-            context.Request.QueryString = context.Request.QueryString.Add("subdomain", subdomain);
+            // Only redirect to Menu if we're at the root path
+            if (context.Request.Path == "/" || string.IsNullOrEmpty(context.Request.Path))
+            {
+                context.Request.Path = "/Menu";
+                context.Request.QueryString = context.Request.QueryString.Add("subdomain", subdomain);
+            }
         }
     }
     
