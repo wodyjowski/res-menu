@@ -67,9 +67,14 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => {
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 1;
     options.Password.RequiredUniqueChars = 0;
+    
+    // Use username instead of email
+    options.User.RequireUniqueEmail = false;
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+.AddDefaultTokenProviders()
+.AddDefaultUI();
 
 builder.Services.ConfigureApplicationCookie(options => {
     options.LoginPath = "/Identity/Account/Login";
@@ -129,7 +134,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// Add subdomain routing middleware
+// Add subdomain routing middleware BEFORE authentication
 app.Use(async (context, next) =>
 {
     var host = context.Request.Host.Host.ToLower();
@@ -155,7 +160,11 @@ app.Use(async (context, next) =>
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Configure endpoints
 app.MapRazorPages();
+
+// Make Menu page publicly accessible
+app.MapGet("/Menu", () => Results.Page("/Menu")).AllowAnonymous();
 
 // Initialize/migrate database on startup
 try
