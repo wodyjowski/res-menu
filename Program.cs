@@ -139,12 +139,17 @@ app.Use(async (context, next) =>
     var host = context.Request.Host.Host.ToLower();
     var isLocalhost = host == "localhost" || host.StartsWith("127.") || host.StartsWith("192.168.");
     
-    if (!isLocalhost && host.Count(c => c == '.') > 1)
+    if (!isLocalhost && host.Contains("."))
     {
-        var subdomain = host.Split('.')[0];
-        if (!string.IsNullOrEmpty(subdomain))
+        // Extract subdomain from the first part of the domain
+        var parts = host.Split('.');
+        var subdomain = parts[0];
+        var isMainDomain = host == "res-menu.duckdns.org";
+        
+        // Only process if we have a subdomain and we're not on the main domain
+        if (!string.IsNullOrEmpty(subdomain) && !isMainDomain)
         {
-            // Only redirect to Menu if we're at the root path
+            // Only rewrite root path to menu
             if (context.Request.Path == "/" || string.IsNullOrEmpty(context.Request.Path))
             {
                 context.Request.Path = "/Menu";
@@ -159,7 +164,16 @@ app.Use(async (context, next) =>
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapRazorPages().AllowAnonymous();
+// Configure endpoints with explicit authorization
+app.MapRazorPages(options =>
+{
+    options.Conventions.AllowAnonymousToPage("/Menu");
+    options.Conventions.AllowAnonymousToPage("/Error");
+    options.Conventions.AuthorizePage("/Restaurant/ManageMenu");
+    options.Conventions.AuthorizePage("/Restaurant/CreateMenuItem");
+    options.Conventions.AuthorizePage("/Restaurant/EditMenuItem");
+    options.Conventions.AuthorizePage("/Restaurant/CreateRestaurant");
+});
 
 // Make Menu page publicly accessible
 app.MapGet("/Menu", () => Results.Page("/Menu")).AllowAnonymous();

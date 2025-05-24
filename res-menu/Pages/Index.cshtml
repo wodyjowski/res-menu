@@ -27,7 +27,7 @@
                                 var isLocalhost = Request.Host.Host == "localhost" || Request.Host.Host.StartsWith("127.") || Request.Host.Host.StartsWith("192.168.");
                                 var menuUrl = isLocalhost
                                     ? $"{Request.Scheme}://{Request.Host}/Menu?subdomain={Model.Restaurant.Subdomain}"
-                                    : $"{Request.Scheme}://{Model.Restaurant.Subdomain}.pizza.res-menu.duckdns.org";
+                                    : $"{Request.Scheme}://{Model.Restaurant.Subdomain}.res-menu.duckdns.org";
                                 <a href="@menuUrl" class="btn btn-outline-primary" target="_blank">
                                     <i class="bi bi-eye me-2"></i>Preview Menu
                                 </a>
@@ -118,7 +118,7 @@
                 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname.startsWith('127.') || window.location.hostname.startsWith('192.168.');
                 const menuUrl = isLocalhost
                     ? '@($"{Request.Scheme}://{Request.Host}/Menu?subdomain={Model.Restaurant.Subdomain}")'
-                    : '@($"{Request.Scheme}://{Model.Restaurant.Subdomain}.pizza.res-menu.duckdns.org")';
+                    : '@($"{Request.Scheme}://{Model.Restaurant.Subdomain}.res-menu.duckdns.org")';
                 const qr = qrcode(0, 'M');
                 qr.addData(menuUrl);
                 qr.make();
