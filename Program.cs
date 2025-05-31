@@ -23,8 +23,7 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 {
     serverOptions.ListenAnyIP(80); // HTTP
     serverOptions.ListenAnyIP(443, listenOptions =>
-    {
-        listenOptions.UseHttps(httpsOptions =>
+    {        listenOptions.UseHttps(httpsOptions =>
         {
             // Auto-generate development certificate if not in production
             if (builder.Environment.IsDevelopment())
@@ -41,23 +40,26 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
             var logger = tempServiceProvider.GetRequiredService<ILogger<Program>>();
             tempServiceProvider.Dispose();
             
-            if (!File.Exists(certPath))
-            {
-                logger.LogError("SSL certificate file not found at path: {CertPath}", certPath);
-            }
-            
-            if (!File.Exists(keyPath))
-            {
-                logger.LogError("SSL private key file not found at path: {KeyPath}", keyPath);
-            }
-            
             if (File.Exists(certPath) && File.Exists(keyPath))
             {
                 logger.LogInformation("SSL certificate files found successfully. Certificate: {CertPath}, Key: {KeyPath}", certPath, keyPath);
+                httpsOptions.ServerCertificateFile = certPath;
+                httpsOptions.ServerCertificatePrivateKeyFile = keyPath;
             }
-            
-            httpsOptions.ServerCertificateFile = certPath;
-            httpsOptions.ServerCertificatePrivateKeyFile = keyPath;
+            else
+            {
+                if (!File.Exists(certPath))
+                {
+                    logger.LogError("SSL certificate file not found at path: {CertPath}", certPath);
+                }
+                
+                if (!File.Exists(keyPath))
+                {
+                    logger.LogError("SSL private key file not found at path: {KeyPath}", keyPath);
+                }
+                
+                logger.LogWarning("SSL certificates not found. HTTPS will use default certificate or may not work properly.");
+            }
         });
     });
 });
