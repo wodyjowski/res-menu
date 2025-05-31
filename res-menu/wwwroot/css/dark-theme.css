@@ -187,3 +187,90 @@ body.dark-theme {
 [data-theme="dark"] .card p {
     color: var(--text-secondary) !important;
 }
+
+/* Improved table theming for both theme systems */
+.dark-theme .table,
+[data-theme="dark"] .table {
+    color: var(--dark-text, var(--text));
+    --bs-table-bg: var(--dark-card, var(--card-bg));
+    background-color: var(--dark-card, var(--card-bg));
+}
+
+.dark-theme .table td,
+.dark-theme .table th,
+[data-theme="dark"] .table td,
+[data-theme="dark"] .table th {
+    border-color: var(--dark-border, var(--border));
+    background-color: var(--dark-card, var(--card-bg));
+}
+
+.dark-theme .table thead th,
+[data-theme="dark"] .table thead th {
+    background-color: var(--dark-card, var(--card-bg));
+    color: var(--dark-text, var(--text));
+}
+
+.dark-theme .table tbody tr,
+[data-theme="dark"] .table tbody tr {
+    background-color: var(--dark-card, var(--card-bg));
+}
+
+.dark-theme .table tfoot th,
+[data-theme="dark"] .table tfoot th {
+    background-color: var(--dark-card, var(--card-bg));
+    color: var(--dark-text, var(--text));
+}
+
+/* Card theming improvements */
+.dark-theme .card,
+[data-theme="dark"] .card {
+    background-color: var(--dark-card, var(--card-bg));
+    border-color: var(--dark-border, var(--border));
+    color: var(--dark-text, var(--text));
+}
+
+.dark-theme .card-body,
+.dark-theme .card-header,
+.dark-theme .card-footer,
+[data-theme="dark"] .card-body,
+[data-theme="dark"] .card-header,
+[data-theme="dark"] .card-footer {
+    background-color: var(--dark-card, var(--card-bg));
+    color: var(--dark-text, var(--text));
+}
+
+.dark-theme .card-header,
+[data-theme="dark"] .card-header {
+    border-bottom-color: var(--dark-border, var(--border));
+}
+
+/* Alert theming */
+.dark-theme .alert,
+[data-theme="dark"] .alert {
+    background-color: var(--dark-card, var(--card-bg));
+    border-color: var(--dark-border, var(--border));
+    color: var(--dark-text, var(--text));
+}
+
+/* Dropdown theming */
+.dark-theme .dropdown-menu,
+[data-theme="dark"] .dropdown-menu {
+    background-color: var(--dark-card, var(--card-bg));
+    border-color: var(--dark-border, var(--border));
+}
+
+.dark-theme .dropdown-item,
+[data-theme="dark"] .dropdown-item {
+    color: var(--dark-text, var(--text));
+}
+
+.dark-theme .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:hover {
+    background-color: var(--dark-bg, var(--background));
+}
+
+/* Progress bar theming */
+.dark-theme .progress,
+[data-theme="dark"] .progress {
+    background-color: var(--dark-border, var(--border));
+}

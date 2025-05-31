@@ -5,6 +5,60 @@
     ViewData["Title"] = "Order Management";
 }
 
+@section Styles {
+    <style>
+        /* Theme-aware styling for Order Management page */
+        .card {
+            background-color: var(--card-bg);
+            border-color: var(--border);
+            color: var(--text);
+        }
+        
+        .card-body,
+        .card-header,
+        .card-footer {
+            background-color: var(--card-bg);
+            color: var(--text);
+        }
+        
+        .card-header {
+            border-bottom-color: var(--border);
+        }
+        
+        .alert {
+            background-color: var(--card-bg);
+            border-color: var(--border);
+            color: var(--text);
+        }
+        
+        /* Override any hardcoded bootstrap table backgrounds */
+        .table {
+            --bs-table-bg: var(--card-bg);
+            background-color: var(--card-bg);
+            color: var(--text);
+        }
+        
+        .table td,
+        .table th {
+            border-color: var(--border);
+            background-color: var(--card-bg);
+        }
+        
+        .dropdown-menu {
+            background-color: var(--card-bg);
+            border-color: var(--border);
+        }
+        
+        .dropdown-item {
+            color: var(--text);
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--background);
+        }
+    </style>
+}
+
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-clipboard-check me-2"></i>Order Management</h2>
