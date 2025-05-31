@@ -297,6 +297,8 @@ app.Use(async (context, next) =>
         // We are assuming that any path on a subdomain should show the menu.
         // If there are other specific paths on subdomains (e.g., /api/...) they would need special handling here.
 
+        logger.LogInformation("Changing request path to: {Subdomain}", detectedSubdomain);
+        
         context.Request.Path = "/Menu"; // Force path to /Menu
         context.Items["Subdomain"] = detectedSubdomain; // Set for MenuModel
         
