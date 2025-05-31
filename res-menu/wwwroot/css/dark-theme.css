@@ -138,7 +138,7 @@ body.dark-theme {
     --primary-hover: #1d4ed8;
     --background: #f8fafc;
     --card-bg: #ffffff;
-    --text: #1a1a1a;
+    --text: #1a1a1a; /* Ensure this is a dark color for light backgrounds */
     --text-secondary: #4b5563;
     --text-muted: #6b7280;
     --border: #e5e7eb;
@@ -186,4 +186,4 @@ body.dark-theme {
 
 [data-theme="dark"] .card p {
     color: var(--text-secondary) !important;
-} 
+}
