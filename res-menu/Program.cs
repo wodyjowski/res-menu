@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using res_menu.Data;
-using res_menu.Extensions;
 using Npgsql;
 using System.Net.Sockets;
+using Microsoft.AspNetCore.Localization;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,87 +17,324 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
         .AddSupportedUICultures(supportedCultures);
 });
 
-// Configure Kestrel for production HTTPS
-if (!builder.Environment.IsDevelopment())
+// Configure Kestrel to use HTTPS
+builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    builder.WebHost.ConfigureKestrel(serverOptions =>
+    serverOptions.ListenAnyIP(80); // HTTP - always available
+    
+    // Only configure HTTPS if we're in development or have valid certificates
+    if (builder.Environment.IsDevelopment())
     {
-        serverOptions.ListenAnyIP(80); // HTTP
         serverOptions.ListenAnyIP(443, listenOptions =>
         {
-            listenOptions.UseHttps(httpsOptions =>
-            {
-                // In production, use Let's Encrypt certificate paths
-                var certPath = "/etc/letsencrypt/live/res-menu.duckdns.org/fullchain.pem";
-                var keyPath = "/etc/letsencrypt/live/res-menu.duckdns.org/privkey.pem";
-                
-                if (File.Exists(certPath) && File.Exists(keyPath))
-                {
-                    httpsOptions.ServerCertificate = System.Security.Cryptography.X509Certificates.X509Certificate2.CreateFromPemFile(certPath, keyPath);
-                }
-            });
+            listenOptions.UseHttps(); // Uses development certificate
         });
-    });
-}
+    }
+    else
+    {
+        // In production, check for Let's Encrypt certificates first
+        var certPath = "/etc/letsencrypt/live/res-menu.duckdns.org/fullchain.pem";
+        var keyPath = "/etc/letsencrypt/live/res-menu.duckdns.org/privkey.pem";
+        
+        if (File.Exists(certPath) && File.Exists(keyPath))
+        {
+            Console.WriteLine($"SSL certificate files found successfully. Certificate: {certPath}, Key: {keyPath}");
+            
+            serverOptions.ListenAnyIP(443, listenOptions =>
+            {
+                listenOptions.UseHttps(certPath, keyPath);
+            });
+        }
+        else
+        {
+            if (!File.Exists(certPath))
+            {
+                Console.WriteLine($"SSL certificate file not found at path: {certPath}");
+            }
+            
+            if (!File.Exists(keyPath))
+            {
+                Console.WriteLine($"SSL private key file not found at path: {keyPath}");
+            }
+            
+            Console.WriteLine("SSL certificates not found. HTTPS endpoint will not be available until certificates are configured.");
+        }
+    }
+});
 
-// Get connection string with environment variable fallback
+// Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
     Environment.GetEnvironmentVariable("DATABASE_URL") ?? 
-    throw new InvalidOperationException("Connection string not found. Please set either DefaultConnection in configuration or DATABASE_URL environment variable."); 
+    throw new InvalidOperationException("Connection string not found. Please set either DefaultConnection in configuration or DATABASE_URL environment variable.");
 
-// Log connection info (sanitized)
+// Log the connection string (without credentials) at startup
 var sanitizedConnectionString = connectionString.Contains("@") 
     ? new Uri(connectionString).Host 
     : connectionString.Replace(";Password=", ";Password=***").Replace(";User Id=", ";User Id=***").Replace(";Username=", ";Username=***");
 Console.WriteLine($"Using database connection: {sanitizedConnectionString}");
 
-// Apply localhost override for development
-var dockerEnvVar = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER");
+// If the connection string is a Heroku-style URL (postgres://user:pass@host:port/db)
+if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
+{
+    var uri = new Uri(connectionString);
+    var userInfo = uri.UserInfo.Split(':');
+    connectionString = new NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.Port,
+        Database = uri.AbsolutePath.TrimStart('/'),
+        Username = userInfo[0],
+        Password = userInfo[1],
+        SslMode = Npgsql.SslMode.Prefer
+    }.ToString();
+}
+
+// Only change postgres to localhost in development AND when not running in Docker
 if (builder.Environment.IsDevelopment() && 
-    !string.Equals(dockerEnvVar, "true", StringComparison.OrdinalIgnoreCase) && 
+    !Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?.Equals("true", StringComparison.OrdinalIgnoreCase) == true && 
     connectionString.Contains("Host=postgres"))
 {
     connectionString = connectionString.Replace("Host=postgres", "Host=localhost");
 }
 
-// Add services using extension methods
-builder.Services.AddDatabaseServices(connectionString);
-builder.Services.AddIdentityServices();
-builder.Services.AddApplicationServices();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(3),
+            errorCodesToAdd: null);
+    });
+});
+
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+// Configure Identity
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => {
+    options.SignIn.RequireConfirmedAccount = false;
+    options.SignIn.RequireConfirmedEmail = false;
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 1;
+    options.Password.RequiredUniqueChars = 0;
+    
+    // Use username instead of email
+    options.User.RequireUniqueEmail = false;
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options => {
+    options.LoginPath = "/Identity/Account/Login";
+    options.LogoutPath = "/Identity/Account/Logout";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    options.Cookie.Name = "res_menu_auth";
+    options.Cookie.HttpOnly = true;
+    options.ExpireTimeSpan = TimeSpan.FromDays(30);
+    options.SlidingExpiration = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+});
+
+builder.Services.AddRazorPages(options => {
+    // Make Menu page publicly accessible
+    options.Conventions.AllowAnonymousToPage("/Menu");
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+// Add error handling middleware at the beginning of the pipeline
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        logger.LogInformation(
+            "Starting request processing - Method: {Method}, Path: {Path}, Host: {Host}",
+            context.Request.Method,
+            context.Request.Path,
+            context.Request.Host.Value
+        );
+        
+        await next();
+        
+        logger.LogInformation(
+            "Request completed - Status Code: {StatusCode}",
+            context.Response.StatusCode
+        );
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(
+            ex,
+            "Error processing request - Method: {Method}, Path: {Path}, Host: {Host}, Error: {Error}",
+            context.Request.Method,
+            context.Request.Path,
+            context.Request.Host.Value,
+            ex.Message
+        );
+        throw;
+    }
+});
+
+// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    // Use our custom exception handling instead of default
-    app.UseCustomExceptionHandling();
+    app.UseExceptionHandler("/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-else
-{
-    // Use custom exception handling in development too for consistency
-    app.UseCustomExceptionHandling();
-}
 
-// Add localization and custom middleware
+// Add localization middleware at the beginning of the pipeline
 app.UseRequestLocalization();
-app.UseRequestLogging();
+
+// Add database error handling middleware
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex) when (
+        ex is PostgresException ||
+        ex is NpgsqlException ||
+        ex is SocketException ||
+        (ex.InnerException is PostgresException) ||
+        (ex.InnerException is NpgsqlException) ||
+        (ex.InnerException is SocketException))
+    {
+        // Log the error with connection details (but not credentials)
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        var dbContext = context.RequestServices.GetRequiredService<ApplicationDbContext>();
+        var dbConnectionString = dbContext.Database.GetConnectionString() ?? "";
+        var sanitizedConnectionString = SanitizeConnectionString(dbConnectionString);
+        
+        logger.LogError(ex, "Database connection error occurred. Connection details: {ConnectionDetails}", sanitizedConnectionString);
+
+        // Redirect to error page with database error flag
+        context.Response.Redirect("/Error?errorType=database");
+    }
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// Add subdomain routing before authentication
-app.UseSubdomainRouting();
+// Add subdomain routing middleware BEFORE authentication
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    var host = context.Request.Host.Host.ToLower();
+    var isLocalhost = host == "localhost" || host.StartsWith("127.") || host.StartsWith("192.168.");
+    
+    logger.LogInformation(
+        "Request received - Host: {Host}, Path: {Path}, IsLocalhost: {IsLocalhost}",
+        host,
+        context.Request.Path,
+        isLocalhost
+    );
+    
+    // Check if we're on a subdomain of res-menu.duckdns.org
+    if (!isLocalhost && host.EndsWith("res-menu.duckdns.org") && host != "res-menu.duckdns.org")
+    {
+        var subdomain = host.Split('.')[0];
+        logger.LogInformation(
+            "Subdomain detected: {Subdomain}, Original Path: {OriginalPath}",
+            subdomain,
+            context.Request.Path
+        );
+        
+        if (!string.IsNullOrEmpty(subdomain))
+        {
+            context.Request.Path = "/Menu";
+            context.Request.QueryString = context.Request.QueryString.Add("subdomain", subdomain);
+            logger.LogInformation(
+                "Request rewritten - New Path: {NewPath}, QueryString: {QueryString}",
+                context.Request.Path,
+                context.Request.QueryString
+            );
+        }
+    }
+    
+    await next();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Configure endpoints
+// Configure endpoints with explicit authorization
 app.MapRazorPages();
 
-// Initialize database
-await app.InitializeDatabaseAsync();
+// Initialize/migrate database on startup
+try
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    // Create database if it doesn't exist
+    if (!await dbContext.Database.CanConnectAsync())
+    {
+        logger.LogInformation("Database does not exist. Creating database...");
+        await dbContext.Database.EnsureCreatedAsync();
+        logger.LogInformation("Database created successfully.");
+    }    // Check for pending migrations
+    if ((await dbContext.Database.GetPendingMigrationsAsync()).Any())
+    {
+        logger.LogInformation("Applying pending migrations...");
+        await dbContext.Database.MigrateAsync();
+        logger.LogInformation("Migrations applied successfully.");
+    }
+    
+    // Log successful connection
+    var dbConnectionString = dbContext.Database.GetConnectionString() ?? "";
+    var sanitizedDbConnectionString = SanitizeConnectionString(dbConnectionString);
+    logger.LogInformation("Successfully connected to database. Connection details: {ConnectionDetails}", sanitizedDbConnectionString);
+}
+catch (Exception ex) when (
+    ex is PostgresException ||
+    ex is NpgsqlException ||
+    ex is SocketException ||
+    (ex.InnerException is PostgresException) ||
+    (ex.InnerException is NpgsqlException) ||
+    (ex.InnerException is SocketException))
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "Unable to initialize/migrate database");
+    
+    // Try to create the database if it doesn't exist
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        
+        // Create the database
+        using var conn = new NpgsqlConnection(connectionString.Replace("Database=res_menu;", "Database=postgres;"));
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "CREATE DATABASE res_menu;";
+        await cmd.ExecuteNonQueryAsync();
+        
+        logger.LogInformation("Database created successfully. Applying migrations...");
+        
+        // Apply migrations
+        await dbContext.Database.MigrateAsync();
+        logger.LogInformation("Migrations applied successfully.");
+    }
+    catch (Exception createEx)
+    {
+        logger.LogError(createEx, "Failed to create database and apply migrations");
+    }
+}
 
 app.Run();
+
+// Helper method to remove sensitive information from connection string
+static string SanitizeConnectionString(string connectionString)
+{
+    var builder = new NpgsqlConnectionStringBuilder(connectionString);
+    return $"Host={builder.Host};Database={builder.Database};Port={builder.Port}";
+} 
