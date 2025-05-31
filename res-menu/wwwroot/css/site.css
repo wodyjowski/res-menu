@@ -12,13 +12,26 @@ html {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+/* Sticky footer setup */
+html, body {
+  height: 100%;
 }
 
-body {
-  margin-bottom: 60px;
+.min-vh-100 {
+  min-height: 100vh !important;
+}
+
+/* Footer styling */
+.footer {
+  background-color: var(--bs-gray-100);
+  border-top: 1px solid var(--bs-border-color);
+}
+
+/* Dark theme footer */
+[data-theme="dark"] .footer {
+  background-color: var(--darker-bg);
+  border-top-color: var(--dark-border);
+  color: var(--dark-text);
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {

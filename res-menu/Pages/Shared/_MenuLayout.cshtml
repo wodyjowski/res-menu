@@ -62,28 +62,23 @@
             font-weight: 700;
             margin: 1rem 0;
         }
-        
-        .restaurant-description {
+          .restaurant-description {
             font-size: 1.1rem;
             max-width: 800px;
             margin: 0 auto;
         }
-        
-        footer {
-            padding: 1rem 0;
-            box-shadow: 0 -2px 15px rgba(0,0,0,0.15);
-            margin-top: 3rem;
-        }
     </style>
 </head>
-<body>
-    <main role="main">
+<body class="d-flex flex-column min-vh-100">
+    <main role="main" class="flex-grow-1">
         @RenderBody()
     </main>
 
-    <footer class="border-top footer">
-        <div class="container text-center">
-            <p class="mb-0">&copy; @DateTime.Now.Year - Powered by Restaurant Menu System</p>
+    <footer class="footer mt-auto py-3">
+        <div class="container">
+            <div class="text-center">
+                &copy; 2025 - Restaurant Menu System
+            </div>
         </div>
     </footer>
 
