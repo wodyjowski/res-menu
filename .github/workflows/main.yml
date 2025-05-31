@@ -1,23 +1,26 @@
-name: Build and push Docker image
+name: Create and publish a Docker image
 on:
   push:
     branches: ['master']
+  workflow_dispatch:
+    inputs:
+      deploy_only:
+        description: 'Run only deploy step'
+        required: false
+        default: 'false'
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push-image:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
       attestations: write
       id-token: write
-    outputs:
-      image-tag: ${{ steps.push.outputs.tags }}
-      image-digest: ${{ steps.push.outputs.digest }}
 
     steps:
       - name: Checkout repository
@@ -38,6 +41,7 @@ jobs:
 
       - name: Build and push Docker image
         id: push
+        if: ${{ github.event_name == 'push' || github.event.inputs.deploy_only == 'false' }}
         uses: docker/build-push-action@v3
         with:
           context: .
@@ -46,8 +50,16 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Generate artifact attestation
+        if: ${{ github.event_name == 'push' || github.event.inputs.deploy_only == 'false' }}
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+
+      - name: Deploy
+        uses: darnfish/watchtower-update@v3.2
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        with:
+          url: "${{ secrets.WATCHTOWER_URL }}"
+          api_token: "${{ secrets.WATCHTOWER_API_TOKEN }}"
