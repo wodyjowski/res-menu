@@ -1,0 +1,239 @@
+@page
+@using res_menu.Models
+@model res_menu.Pages.Restaurant.OrderManagementModel
+@{
+    ViewData["Title"] = "Order Management";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-clipboard-check me-2"></i>Order Management</h2>
+        <div>
+            <a asp-page="/Restaurant/ManageMenu" class="btn btn-outline-primary">
+                <i class="bi bi-list-ul me-2"></i>Manage Menu
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Order Status Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="card-title">Filter by Status</h6>
+            <div class="btn-group" role="group">
+                <a asp-page="OrderManagement" 
+                   class="btn @(Model.SelectedStatus == null ? "btn-primary" : "btn-outline-primary")">
+                    All Orders
+                </a>
+                <a asp-page="OrderManagement" asp-route-status="@OrderStatus.Pending" 
+                   class="btn @(Model.SelectedStatus == OrderStatus.Pending ? "btn-warning" : "btn-outline-warning")">
+                    Pending
+                </a>
+                <a asp-page="OrderManagement" asp-route-status="@OrderStatus.Confirmed" 
+                   class="btn @(Model.SelectedStatus == OrderStatus.Confirmed ? "btn-info" : "btn-outline-info")">
+                    Confirmed
+                </a>
+                <a asp-page="OrderManagement" asp-route-status="@OrderStatus.Preparing" 
+                   class="btn @(Model.SelectedStatus == OrderStatus.Preparing ? "btn-primary" : "btn-outline-primary")">
+                    Preparing
+                </a>
+                <a asp-page="OrderManagement" asp-route-status="@OrderStatus.Ready" 
+                   class="btn @(Model.SelectedStatus == OrderStatus.Ready ? "btn-success" : "btn-outline-success")">
+                    Ready
+                </a>
+                <a asp-page="OrderManagement" asp-route-status="@OrderStatus.Delivered" 
+                   class="btn @(Model.SelectedStatus == OrderStatus.Delivered ? "btn-success" : "btn-outline-success")">
+                    Delivered
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Orders.Any())
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle me-2"></i>
+            @if (Model.SelectedStatus.HasValue)
+            {
+                <text>No orders found with status "@GetStatusText(Model.SelectedStatus.Value)".</text>
+            }
+            else
+            {
+                <text>No orders found.</text>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var order in Model.Orders)
+            {
+                <div class="col-lg-6 col-xl-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Order #@order.Id</h6>
+                            <span class="badge @GetStatusBadgeClass(order.Status)">
+                                @GetStatusText(order.Status)
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <small class="text-muted">Customer Information</small>
+                                <p class="mb-1"><strong>@order.CustomerName</strong></p>
+                                @if (!string.IsNullOrEmpty(order.CustomerPhone))
+                                {
+                                    <p class="mb-1"><i class="bi bi-telephone me-1"></i>@order.CustomerPhone</p>
+                                }
+                                @if (!string.IsNullOrEmpty(order.TableNumber))
+                                {
+                                    <p class="mb-1"><i class="bi bi-table me-1"></i>Table @order.TableNumber</p>
+                                }
+                                <p class="mb-1"><i class="bi bi-clock me-1"></i>@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+
+                            <div class="mb-3">
+                                <small class="text-muted">Order Items</small>
+                                @foreach (var item in order.OrderItems)
+                                {
+                                    <div class="d-flex justify-content-between">
+                                        <span>@item.MenuItem?.Name x @item.Quantity</span>
+                                        <span>@item.TotalPrice.ToString("C", new System.Globalization.CultureInfo("pl-PL"))</span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(item.SpecialInstructions))
+                                    {
+                                        <small class="text-muted">Note: @item.SpecialInstructions</small>
+                                    }
+                                }
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(order.Notes))
+                            {
+                                <div class="mb-3">
+                                    <small class="text-muted">Special Notes</small>
+                                    <p class="mb-0 fst-italic">@order.Notes</p>
+                                </div>
+                            }
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>Total: @order.TotalAmount.ToString("C", new System.Globalization.CultureInfo("pl-PL"))</strong>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary btn-sm dropdown-toggle w-100" 
+                                        type="button" 
+                                        data-bs-toggle="dropdown">
+                                    Update Status
+                                </button>
+                                <ul class="dropdown-menu w-100">
+                                    @if (order.Status == OrderStatus.Pending)
+                                    {
+                                        <li>
+                                            <form method="post" asp-page-handler="UpdateStatus" class="d-inline">
+                                                <input type="hidden" name="orderId" value="@order.Id" />
+                                                <input type="hidden" name="status" value="@OrderStatus.Confirmed" />
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="bi bi-check-circle text-info me-2"></i>Confirm Order
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form method="post" asp-page-handler="UpdateStatus" class="d-inline">
+                                                <input type="hidden" name="orderId" value="@order.Id" />
+                                                <input type="hidden" name="status" value="@OrderStatus.Cancelled" />
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="bi bi-x-circle text-danger me-2"></i>Cancel Order
+                                                </button>
+                                            </form>
+                                        </li>
+                                    }
+                                    @if (order.Status == OrderStatus.Confirmed)
+                                    {
+                                        <li>
+                                            <form method="post" asp-page-handler="UpdateStatus" class="d-inline">
+                                                <input type="hidden" name="orderId" value="@order.Id" />
+                                                <input type="hidden" name="status" value="@OrderStatus.Preparing" />
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="bi bi-arrow-repeat text-primary me-2"></i>Start Preparing
+                                                </button>
+                                            </form>
+                                        </li>
+                                    }
+                                    @if (order.Status == OrderStatus.Preparing)
+                                    {
+                                        <li>
+                                            <form method="post" asp-page-handler="UpdateStatus" class="d-inline">
+                                                <input type="hidden" name="orderId" value="@order.Id" />
+                                                <input type="hidden" name="status" value="@OrderStatus.Ready" />
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="bi bi-check2-all text-success me-2"></i>Mark as Ready
+                                                </button>
+                                            </form>
+                                        </li>
+                                    }
+                                    @if (order.Status == OrderStatus.Ready)
+                                    {
+                                        <li>
+                                            <form method="post" asp-page-handler="UpdateStatus" class="d-inline">
+                                                <input type="hidden" name="orderId" value="@order.Id" />
+                                                <input type="hidden" name="status" value="@OrderStatus.Delivered" />
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="bi bi-truck text-success me-2"></i>Mark as Delivered
+                                                </button>
+                                            </form>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@functions {
+    private string GetStatusBadgeClass(OrderStatus status)
+    {
+        return status switch
+        {
+            OrderStatus.Pending => "bg-warning text-dark",
+            OrderStatus.Confirmed => "bg-info",
+            OrderStatus.Preparing => "bg-primary",
+            OrderStatus.Ready => "bg-success",
+            OrderStatus.Delivered => "bg-success",
+            OrderStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusText(OrderStatus status)
+    {
+        return status switch
+        {
+            OrderStatus.Pending => "Pending",
+            OrderStatus.Confirmed => "Confirmed",
+            OrderStatus.Preparing => "Preparing",
+            OrderStatus.Ready => "Ready",
+            OrderStatus.Delivered => "Delivered",
+            OrderStatus.Cancelled => "Cancelled",
+            _ => "Unknown"
+        };
+    }
+}

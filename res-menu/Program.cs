@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using res_menu.Data;
+using res_menu.Extensions;
 using Npgsql;
 using System.Net.Sockets;
 using Microsoft.AspNetCore.Localization;
@@ -159,10 +160,8 @@ builder.Services.ConfigureApplicationCookie(options => {
 // Register dynamic port service
 builder.Services.AddScoped<ResMenu.Services.IDynamicPortService, ResMenu.Services.DynamicPortService>();
 
-builder.Services.AddRazorPages(options => {
-    // Make Menu page publicly accessible
-    options.Conventions.AllowAnonymousToPage("/Menu");
-});
+// Register application services including IOrderService
+builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 

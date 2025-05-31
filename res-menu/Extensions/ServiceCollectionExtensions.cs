@@ -82,21 +82,22 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddRazorPages(options => 
-        {
-            // Configure public pages
+        {            // Configure public pages
             options.Conventions.AllowAnonymousToPage("/Menu");
+            options.Conventions.AllowAnonymousToPage("/Order/Status");
             options.Conventions.AllowAnonymousToPage("/Error");
-            
-            // Configure protected pages
+              // Configure protected pages
             options.Conventions.AuthorizePage("/Restaurant/ManageMenu");
             options.Conventions.AuthorizePage("/Restaurant/CreateMenuItem");
             options.Conventions.AuthorizePage("/Restaurant/EditMenuItem");
             options.Conventions.AuthorizePage("/Restaurant/CreateRestaurant");
+            options.Conventions.AuthorizePage("/Restaurant/OrderManagement");
         });        // Register application services
         services.AddMemoryCache();
         services.AddScoped<IFileUploadService, FileUploadService>();
         services.AddScoped<IRestaurantService, RestaurantService>();
         services.AddScoped<IMenuItemService, MenuItemService>();
+        services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IErrorHandlingService, ErrorHandlingService>();
         services.AddScoped<ICacheService, CacheService>();
 

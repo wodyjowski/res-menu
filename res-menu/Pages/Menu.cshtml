@@ -149,12 +149,44 @@
             background: var(--card-bg);
             color: var(--text-secondary);
             border-top: 1px solid var(--border);
-        }
-
-        .alert {
+        }        .alert {
             background-color: var(--card-bg);
             border-color: var(--border);
             color: var(--text);
+        }
+        
+        .cart-item {
+            border-bottom: 1px solid var(--border);
+            padding: 0.5rem 0;
+        }
+        
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        
+        .cart-summary {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .btn-add-to-cart {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-add-to-cart:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            color: white;
+        }
+        
+        .quantity-input {
+            width: 60px;
+            text-align: center;
         }
     </style>
 </head>
@@ -183,9 +215,7 @@
                         <p class="restaurant-description">@Model.Restaurant.Description</p>
                     }
                 </div>
-            </div>
-
-            <div class="container">
+            </div>            <div class="container">
                 @if (!Model.MenuItems.Any())
                 {
                     <div class="alert alert-info text-center">
@@ -194,53 +224,295 @@
                 }
                 else
                 {
-                    var categories = Model.MenuItems
-                        .Where(m => m.IsAvailable)
-                        .Select(m => m.Category)
-                        .Distinct()
-                        .OrderBy(c => c);
+                    <div class="row">
+                        <div class="col-lg-8">
+                            @{
+                                var categories = Model.MenuItems
+                                    .Where(m => m.IsAvailable)
+                                    .Select(m => m.Category)
+                                    .Distinct()
+                                    .OrderBy(c => c);
+                            }
 
-                    foreach (var category in categories)
-                    {
-                        var categoryItems = Model.MenuItems
-                            .Where(m => m.Category == category && m.IsAvailable)
-                            .OrderBy(m => m.Name);
+                            @foreach (var category in categories)
+                            {
+                                var categoryItems = Model.MenuItems
+                                    .Where(m => m.Category == category && m.IsAvailable)
+                                    .OrderBy(m => m.Name);
 
-                        <div class="menu-category mb-5">
-                            <h2>@category</h2>
-                            <div class="row g-4">
-                                @foreach (var item in categoryItems)
-                                {
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="menu-item">
-                                            @if (!string.IsNullOrEmpty(item.ImageUrl))
-                                            {
-                                                <img src="@item.ImageUrl" alt="@item.Name" class="img-fluid" />
-                                            }
-                                            <div class="p-3">
-                                                <h3 class="menu-item-title">@item.Name</h3>
-                                                <p class="menu-item-description">@item.Description</p>
-                                                <div class="price">@item.Price.ToString("C", new System.Globalization.CultureInfo("pl-PL"))</div>
+                                <div class="menu-category mb-5">
+                                    <h2>@category</h2>
+                                    <div class="row g-4">
+                                        @foreach (var item in categoryItems)
+                                        {
+                                            <div class="col-md-6">
+                                                <div class="menu-item">
+                                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                                    {
+                                                        <img src="@item.ImageUrl" alt="@item.Name" class="img-fluid" />
+                                                    }
+                                                    <div class="p-3">
+                                                        <h3 class="menu-item-title">@item.Name</h3>
+                                                        <p class="menu-item-description">@item.Description</p>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="price">@item.Price.ToString("C", new System.Globalization.CultureInfo("pl-PL"))</div>
+                                                            <button type="button" 
+                                                                    class="btn btn-add-to-cart btn-sm" 
+                                                                    onclick="addToCart(@item.Id, '@Html.Raw(Html.Encode(item.Name))', @item.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
+                                                                <i class="bi bi-plus-circle me-1"></i>Add to Order
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
+                                        }
                                     </div>
-                                }
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <div class="cart-summary p-3">
+                                <h4><i class="bi bi-cart me-2"></i>Your Order</h4>
+                                <div id="cart-items">
+                                    <p class="text-muted text-center">Your cart is empty</p>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <strong>Total: <span id="cart-total">0.00 zł</span></strong>
+                                </div>
+                                <button type="button" 
+                                        class="btn btn-primary w-100 mt-3" 
+                                        id="checkout-btn" 
+                                        onclick="showOrderForm()" 
+                                        disabled>
+                                    <i class="bi bi-credit-card me-2"></i>Place Order
+                                </button>
                             </div>
                         </div>
-                    }
+                    </div>
                 }
-            </div>
-        }
+            </div>        }
     </main>
+
+    <!-- Order Form Modal -->
+    <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="background-color: var(--card-bg); color: var(--text);">
+                <form method="post" asp-page-handler="CreateOrder" asp-route-subdomain="@ViewContext.RouteData.Values["subdomain"]">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="orderModalLabel">Complete Your Order</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="OrderForm.CustomerName" class="form-label">Name *</label>
+                                    <input asp-for="OrderForm.CustomerName" class="form-control" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label asp-for="OrderForm.CustomerPhone" class="form-label">Phone</label>
+                                    <input asp-for="OrderForm.CustomerPhone" class="form-control" type="tel" />
+                                </div>
+                                <div class="mb-3">
+                                    <label asp-for="OrderForm.CustomerEmail" class="form-label">Email</label>
+                                    <input asp-for="OrderForm.CustomerEmail" class="form-control" type="email" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="OrderForm.TableNumber" class="form-label">Table Number</label>
+                                    <input asp-for="OrderForm.TableNumber" class="form-control" />
+                                </div>
+                                <div class="mb-3">
+                                    <label asp-for="OrderForm.Notes" class="form-label">Special Instructions</label>
+                                    <textarea asp-for="OrderForm.Notes" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h6>Order Summary</h6>
+                        <div id="order-summary">
+                            <!-- Order items will be populated by JavaScript -->
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Total: <span id="order-total">0.00 zł</span></strong>
+                        </div>
+                        
+                        <!-- Hidden fields for order items -->
+                        <div id="order-items-container">
+                            <!-- Order item inputs will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>Place Order
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <div class="container text-center">
             &copy; @DateTime.Now.Year - Powered by Restaurant Menu System
         </div>
-    </footer>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    </footer>    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        let cart = [];
+
+        function addToCart(menuItemId, name, price) {
+            const existingItem = cart.find(item => item.menuItemId === menuItemId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    menuItemId: menuItemId,
+                    name: name,
+                    price: price,
+                    quantity: 1,
+                    specialInstructions: ''
+                });
+            }
+            
+            updateCartDisplay();
+        }
+
+        function removeFromCart(menuItemId) {
+            cart = cart.filter(item => item.menuItemId !== menuItemId);
+            updateCartDisplay();
+        }
+
+        function updateQuantity(menuItemId, quantity) {
+            const item = cart.find(item => item.menuItemId === menuItemId);
+            if (item) {
+                item.quantity = parseInt(quantity);
+                if (item.quantity <= 0) {
+                    removeFromCart(menuItemId);
+                } else {
+                    updateCartDisplay();
+                }
+            }
+        }
+
+        function updateCartDisplay() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartTotal = document.getElementById('cart-total');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<p class="text-muted text-center">Your cart is empty</p>';
+                cartTotal.textContent = '0.00 zł';
+                checkoutBtn.disabled = true;
+                return;
+            }
+            
+            let total = 0;
+            let html = '';
+            
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                
+                html += `
+                    <div class="cart-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${item.name}</strong><br>
+                                <small>${item.price.toFixed(2)} zł each</small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="updateQuantity(${item.menuItemId}, ${item.quantity - 1})">
+                                    <i class="bi bi-dash"></i>
+                                </button>
+                                <input type="number" class="form-control quantity-input mx-2" 
+                                       value="${item.quantity}" min="1" 
+                                       onchange="updateQuantity(${item.menuItemId}, this.value)">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="updateQuantity(${item.menuItemId}, ${item.quantity + 1})">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeFromCart(${item.menuItemId})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <strong>${itemTotal.toFixed(2)} zł</strong>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartItemsContainer.innerHTML = html;
+            cartTotal.textContent = total.toFixed(2) + ' zł';
+            checkoutBtn.disabled = false;
+        }
+
+        function showOrderForm() {
+            // Update order summary in modal
+            const orderSummary = document.getElementById('order-summary');
+            const orderTotal = document.getElementById('order-total');
+            const orderItemsContainer = document.getElementById('order-items-container');
+            
+            let total = 0;
+            let html = '';
+            let hiddenInputs = '';
+            
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                
+                html += `
+                    <div class="d-flex justify-content-between">
+                        <span>${item.name} x ${item.quantity}</span>
+                        <span>${itemTotal.toFixed(2)} zł</span>
+                    </div>
+                `;
+                
+                hiddenInputs += `
+                    <input type="hidden" name="OrderForm.Items[${index}].MenuItemId" value="${item.menuItemId}">
+                    <input type="hidden" name="OrderForm.Items[${index}].Quantity" value="${item.quantity}">
+                    <input type="hidden" name="OrderForm.Items[${index}].SpecialInstructions" value="${item.specialInstructions}">
+                `;
+            });
+            
+            orderSummary.innerHTML = html;
+            orderTotal.textContent = total.toFixed(2) + ' zł';
+            orderItemsContainer.innerHTML = hiddenInputs;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('orderModal'));
+            modal.show();
+        }
+
+        // Load cart from localStorage on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+                updateCartDisplay();
+            }
+        });
+
+        // Save cart to localStorage whenever it changes
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        // Override updateCartDisplay to save cart
+        const originalUpdateCartDisplay = updateCartDisplay;
+        updateCartDisplay = function() {
+            originalUpdateCartDisplay();
+            saveCart();
+        };
+    </script>
 </body>
 </html>
