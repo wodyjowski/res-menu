@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using res_menu.Data;
+using res_menu.Areas.Identity.Data;
+using Microsoft.AspNetCore.Http.Extensions;
 using Npgsql;
 using System.Net.Sockets;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.DataProtection;
-using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +21,7 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 // Configure Kestrel to use HTTPS
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    serverOptions.ListenAnyIP(8888); // HTTP - use port 8888 instead of 80
+    serverOptions.ListenAnyIP(80); // HTTP - always available
     
     // Only configure HTTPS if we're in development or have valid certificates
     if (builder.Environment.IsDevelopment())
@@ -39,26 +39,35 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
         
         if (File.Exists(certPath) && File.Exists(keyPath))
         {
-            Console.WriteLine($"SSL certificate files found successfully. Certificate: {certPath}, Key: {keyPath}");
+            // Create a temporary service provider to get logger
+            var tempServiceProvider = builder.Services.BuildServiceProvider();
+            var logger = tempServiceProvider.GetRequiredService<ILogger<Program>>();
+            tempServiceProvider.Dispose();
             
-            serverOptions.ListenAnyIP(443, listenOptions =>
+            logger.LogInformation("SSL certificate files found successfully. Certificate: {CertPath}, Key: {KeyPath}", certPath, keyPath);
+              serverOptions.ListenAnyIP(443, listenOptions =>
             {
                 listenOptions.UseHttps(certPath, keyPath);
             });
         }
         else
         {
+            // Create a temporary service provider to get logger
+            var tempServiceProvider = builder.Services.BuildServiceProvider();
+            var logger = tempServiceProvider.GetRequiredService<ILogger<Program>>();
+            tempServiceProvider.Dispose();
+            
             if (!File.Exists(certPath))
             {
-                Console.WriteLine($"SSL certificate file not found at path: {certPath}");
+                logger.LogError("SSL certificate file not found at path: {CertPath}", certPath);
             }
             
             if (!File.Exists(keyPath))
             {
-                Console.WriteLine($"SSL private key file not found at path: {keyPath}");
+                logger.LogError("SSL private key file not found at path: {KeyPath}", keyPath);
             }
             
-            Console.WriteLine("SSL certificates not found. HTTPS endpoint will not be available until certificates are configured.");
+            logger.LogWarning("SSL certificates not found. HTTPS endpoint will not be available until certificates are configured.");
         }
     }
 });
@@ -78,8 +87,7 @@ Console.WriteLine($"Using database connection: {sanitizedConnectionString}");
 if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
 {
     var uri = new Uri(connectionString);
-    var userInfo = uri.UserInfo.Split(':');
-    connectionString = new NpgsqlConnectionStringBuilder
+    var userInfo = uri.UserInfo.Split(':');    connectionString = new NpgsqlConnectionStringBuilder
     {
         Host = uri.Host,
         Port = uri.Port,
@@ -92,7 +100,7 @@ if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("p
 
 // Only change postgres to localhost in development AND when not running in Docker
 if (builder.Environment.IsDevelopment() && 
-    !Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?.Equals("true", StringComparison.OrdinalIgnoreCase) == true && 
+    !Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER").Equals("true", StringComparison.OrdinalIgnoreCase) && 
     connectionString.Contains("Host=postgres"))
 {
     connectionString = connectionString.Replace("Host=postgres", "Host=localhost");
@@ -110,21 +118,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-// Configure Data Protection
-if (builder.Environment.IsProduction())
-{
-    // In production, store keys in the database for persistence across container restarts
-    builder.Services.AddDataProtection()
-        .PersistKeysToDbContext<ApplicationDbContext>()
-        .SetApplicationName("res-menu");
-}
-else
-{
-    // In development, you can use the default file system or configure as needed
-    builder.Services.AddDataProtection()
-        .SetApplicationName("res-menu");
-}
 
 // Configure Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => {
@@ -155,12 +148,14 @@ builder.Services.ConfigureApplicationCookie(options => {
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
-// Register dynamic port service
-builder.Services.AddScoped<ResMenu.Services.IDynamicPortService, ResMenu.Services.DynamicPortService>();
-
 builder.Services.AddRazorPages(options => {
     // Make Menu page publicly accessible
     options.Conventions.AllowAnonymousToPage("/Menu");
+    options.Conventions.AllowAnonymousToPage("/Error");
+    options.Conventions.AuthorizePage("/Restaurant/ManageMenu");
+    options.Conventions.AuthorizePage("/Restaurant/CreateMenuItem");
+    options.Conventions.AuthorizePage("/Restaurant/EditMenuItem");
+    options.Conventions.AuthorizePage("/Restaurant/CreateRestaurant");
 });
 
 var app = builder.Build();
@@ -240,23 +235,6 @@ app.Use(async (context, next) =>
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
-// Add port detection middleware to store current port in cookie
-app.Use(async (context, next) =>
-{
-    var portService = context.RequestServices.GetRequiredService<ResMenu.Services.IDynamicPortService>();
-    var currentPort = context.Request.Host.Port ?? (context.Request.IsHttps ? 443 : 80);
-    
-    // Store port in cookie if it's different from the stored one
-    var storedPort = portService.GetPortFromCookie(context);
-    if (!storedPort.HasValue || storedPort.Value != currentPort)
-    {
-        portService.StorePortInCookie(context, currentPort);
-    }
-    
-    await next();
-});
-
 app.UseRouting();
 
 // Add subdomain routing middleware BEFORE authentication
@@ -302,7 +280,7 @@ app.Use(async (context, next) =>
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Configure endpoints with explicit authorization
+// Configure endpoints
 app.MapRazorPages();
 
 // Initialize/migrate database on startup
@@ -318,15 +296,15 @@ try
         logger.LogInformation("Database does not exist. Creating database...");
         await dbContext.Database.EnsureCreatedAsync();
         logger.LogInformation("Database created successfully.");
-    }    // Check for pending migrations
+    }
+
+    // Check for pending migrations
     if ((await dbContext.Database.GetPendingMigrationsAsync()).Any())
     {
         logger.LogInformation("Applying pending migrations...");
         await dbContext.Database.MigrateAsync();
         logger.LogInformation("Migrations applied successfully.");
-    }
-    
-    // Log successful connection
+    }    // Log successful connection
     var dbConnectionString = dbContext.Database.GetConnectionString() ?? "";
     var sanitizedDbConnectionString = SanitizeConnectionString(dbConnectionString);
     logger.LogInformation("Successfully connected to database. Connection details: {ConnectionDetails}", sanitizedDbConnectionString);

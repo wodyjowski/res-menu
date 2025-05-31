@@ -1,18 +1,19 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using res_menu.Models;
 
 namespace res_menu.Data;
 
-public class ApplicationDbContext : IdentityDbContext
+public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
-    
-    public DbSet<Restaurant> Restaurants { get; set; }
+      public DbSet<Restaurant> Restaurants { get; set; }
     public DbSet<MenuItem> MenuItems { get; set; }
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
