@@ -37,7 +37,9 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
             var keyPath = "/etc/letsencrypt/live/res-menu.duckdns.org/privkey.pem";
             
             // Check if certificate files exist and log accordingly
-            var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+            var tempServiceProvider = builder.Services.BuildServiceProvider();
+            var logger = tempServiceProvider.GetRequiredService<ILogger<Program>>();
+            tempServiceProvider.Dispose();
             
             if (!File.Exists(certPath))
             {
