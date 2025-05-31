@@ -1,0 +1,150 @@
+@page
+@model res_menu.Pages.Restaurant.EditRestaurantModel
+@{
+    ViewData["Title"] = "Edit Restaurant";
+}
+
+<div class="container">
+    <h2 class="mb-4">Edit Restaurant Profile</h2>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    @if (!ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="form-group mb-3">
+                            <label asp-for="Restaurant.Name" class="form-label">Restaurant Name</label>
+                            <input asp-for="Restaurant.Name" class="form-control" required />
+                            <span asp-validation-for="Restaurant.Name" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Restaurant.Subdomain" class="form-label">Subdomain</label>
+                            <div class="input-group">
+                                <input asp-for="Restaurant.Subdomain" class="form-control" required 
+                                       pattern="[a-zA-Z0-9-]+" title="Only letters, numbers, and hyphens are allowed"
+                                       placeholder="e.g., my-restaurant" />
+                                <span class="input-group-text">.mypage.com</span>
+                            </div>
+                            <span asp-validation-for="Restaurant.Subdomain" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                This will be your restaurant's unique URL (e.g., my-restaurant.mypage.com).
+                                Only letters, numbers, and hyphens are allowed.
+                            </small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Restaurant.Description" class="form-label">Description</label>
+                            <textarea asp-for="Restaurant.Description" class="form-control" rows="3"
+                                    placeholder="Tell us about your restaurant..."></textarea>
+                            <span asp-validation-for="Restaurant.Description" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label asp-for="LogoFile" class="form-label">Restaurant Logo</label>
+                            
+                            @if (!string.IsNullOrEmpty(Model.CurrentLogoUrl))
+                            {
+                                <div class="mb-2">
+                                    <p class="text-muted small">Current logo:</p>
+                                    <img src="@Model.CurrentLogoUrl" alt="Current logo" style="max-height: 100px; max-width: 200px;" class="img-thumbnail" />
+                                </div>
+                            }
+                            
+                            <input type="file" asp-for="LogoFile" class="form-control" accept="image/*" />
+                            <span asp-validation-for="LogoFile" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Upload a new logo to replace the current one (optional). Supported formats: JPG, PNG, GIF
+                            </small>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Restaurant.FontFamily" class="form-label">Font Family</label>
+                            <select asp-for="Restaurant.FontFamily" id="fontFamilySelect" class="form-control">
+                                <option value="">Default (Segoe UI)</option>
+                                <option value="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial</option>
+                                <option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif;">Times New Roman</option>
+                                <option value="'Courier New', Courier, monospace" style="font-family: 'Courier New', Courier, monospace;">Courier New</option>
+                                <option value="Georgia, serif" style="font-family: Georgia, serif;">Georgia</option>
+                                <option value="Verdana, sans-serif" style="font-family: Verdana, sans-serif;">Verdana</option>
+                                <option value="Tahoma, sans-serif" style="font-family: Tahoma, sans-serif;">Tahoma</option>
+                                <option value="Garamond, serif" style="font-family: Garamond, serif;">Garamond</option>
+                                <option value="'Brush Script MT', cursive" style="font-family: 'Brush Script MT', cursive;">Brush Script MT</option>
+                                <option value="Impact, Charcoal, sans-serif" style="font-family: Impact, Charcoal, sans-serif;">Impact</option>
+                                <option value="'Lucida Console', Monaco, monospace" style="font-family: 'Lucida Console', Monaco, monospace;">Lucida Console</option>
+                            </select>
+                            <span asp-validation-for="Restaurant.FontFamily" class="text-danger"></span>
+                            <div id="fontPreview" style="margin-top: 10px; padding: 10px; border: 1px solid var(--border, #dee2e6); border-radius: 4px; background-color: var(--card-bg, #f8f9fa); color: var(--text, #212529);">
+                                The quick brown fox jumps over the lazy dog.
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-page="./ManageMenu" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Update Restaurant</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Editing Tips</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">✨ Update your restaurant name</li>
+                        <li class="mb-2">🌐 Change your subdomain URL</li>
+                        <li class="mb-2">📝 Modify your description</li>
+                        <li class="mb-2">🖼️ Upload a new logo</li>
+                        <li>🎨 Change the font style</li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-3">
+                        <small>
+                            <i class="bi bi-info-circle me-1"></i>
+                            Changes will be reflected on your menu page immediately after saving.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Client-side validation for subdomain
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const subdomainInput = document.querySelector('#Restaurant_Subdomain');
+            const subdomain = subdomainInput.value;
+            
+            if (!/^[a-zA-Z0-9-]+$/.test(subdomain)) {
+                e.preventDefault();
+                alert('Subdomain can only contain letters, numbers, and hyphens.');
+                subdomainInput.focus();
+            }
+        });
+
+        // Font preview
+        const fontFamilySelect = document.getElementById('fontFamilySelect');
+        const fontPreview = document.getElementById('fontPreview');
+
+        fontFamilySelect.addEventListener('change', function() {
+            const selectedFont = this.value || 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'; // Default if empty
+            fontPreview.style.fontFamily = selectedFont;
+        });
+
+        // Initialize preview with current selection or default
+        const initialFont = fontFamilySelect.value || 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif';
+        fontPreview.style.fontFamily = initialFont;
+    </script>
+}

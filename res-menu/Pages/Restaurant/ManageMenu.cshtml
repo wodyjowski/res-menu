@@ -36,10 +36,12 @@
     }
 </style>
 
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container">    <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Manage Menu Items</h2>
         <div class="text-end">
+            <a asp-page="./EditRestaurant" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-pencil-square me-2"></i>Edit Restaurant
+            </a>
             <a asp-page="./CreateMenuItem" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-2"></i>Add New Menu Item
             </a>            @if (Model.Restaurant != null)
@@ -48,9 +50,16 @@
                 <a href="@menuUrl" class="btn btn-outline-primary ms-2" target="_blank">
                     <i class="bi bi-eye me-2"></i>Preview Menu
                 </a>
-            }
-        </div>
+            }        </div>
     </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
     @if (Model.Restaurant != null)
     {
