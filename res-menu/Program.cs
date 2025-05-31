@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.DataProtection;
 using System.Diagnostics;
+using res_menu.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -164,6 +165,9 @@ builder.Services.AddScoped<ResMenu.Services.IDynamicPortService, ResMenu.Service
 builder.Services.AddApplicationServices();
 
 var app = builder.Build();
+
+// Add subdomain resolution middleware at the beginning of the pipeline
+app.UseSubdomainResolution();
 
 // Add error handling middleware at the beginning of the pipeline
 app.Use(async (context, next) =>
