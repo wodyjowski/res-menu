@@ -79,10 +79,16 @@ public class EditMenuItemModel : PageModel
         if (originalItem == null)
         {
             return NotFound();
-        }
-
-        if (!ModelState.IsValid)
+        }        if (!ModelState.IsValid)
         {
+            // Repopulate ExistingCategories when validation fails
+            ExistingCategories = await _context.MenuItems
+                .Where(m => m.RestaurantId == MenuItem.RestaurantId && !string.IsNullOrEmpty(m.Category))
+                .Select(m => m.Category!)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+            
             return Page();
         }
 

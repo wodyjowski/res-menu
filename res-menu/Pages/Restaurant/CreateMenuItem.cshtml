@@ -29,10 +29,28 @@
                     <input asp-for="MenuItem.Price" class="form-control" type="number" step="0.01" />
                     <span asp-validation-for="MenuItem.Price" class="text-danger"></span>
                 </div>
-                
-                <div class="form-group mb-3">
+                  <div class="form-group mb-3">
                     <label asp-for="MenuItem.Category" class="form-label"></label>
-                    <input asp-for="MenuItem.Category" class="form-control" list="categories" />
+                    
+                    @if (Model.ExistingCategories.Any())
+                    {
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Existing categories: 
+                                @foreach (var category in Model.ExistingCategories.Take(5))
+                                {
+                                    <span class="badge bg-secondary me-1">@category</span>
+                                }
+                                @if (Model.ExistingCategories.Count > 5)
+                                {
+                                    <span class="text-muted">and @(Model.ExistingCategories.Count - 5) more...</span>
+                                }
+                            </small>
+                        </div>
+                    }
+                    
+                    <input asp-for="MenuItem.Category" class="form-control" list="categories" placeholder="Type a category or select from existing ones" />
                     <datalist id="categories">
                         @foreach (var category in Model.ExistingCategories)
                         {

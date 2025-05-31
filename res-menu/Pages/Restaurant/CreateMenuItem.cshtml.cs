@@ -74,10 +74,16 @@ public class CreateMenuItemModel : PageModel
         if (restaurant == null)
         {
             return RedirectToPage("./CreateRestaurant");
-        }
-
-        if (!ModelState.IsValid)
+        }        if (!ModelState.IsValid)
         {
+            // Repopulate ExistingCategories when validation fails
+            ExistingCategories = await _context.MenuItems
+                .Where(m => m.RestaurantId == restaurant.Id && !string.IsNullOrEmpty(m.Category))
+                .Select(m => m.Category!)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+            
             return Page();
         }
 
