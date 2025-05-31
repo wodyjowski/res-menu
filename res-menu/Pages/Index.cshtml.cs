@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using res_menu.Data;
-using res_menu.Models;
 
 namespace res_menu.Pages;
 
