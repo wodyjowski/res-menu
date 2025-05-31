@@ -267,32 +267,60 @@ app.Use(async (context, next) =>
     var isLocalhost = host == "localhost" || host.StartsWith("127.") || host.StartsWith("192.168.") || host.StartsWith("10.");
     
     logger.LogInformation(
-        "Request received - Host: {Host}, Path: {Path}, IsLocalhost: {IsLocalhost}",
+        "Subdomain Middleware - Incoming Request - Host: {Host}, Path: {Path}, IsLocalhost: {IsLocalhost}",
         host,
         context.Request.Path,
         isLocalhost
     );
     
+    string? detectedSubdomain = null;
+
     // Check if we're on a subdomain of res-menu.duckdns.org
     if (!isLocalhost && host.EndsWith("res-menu.duckdns.org") && host != "res-menu.duckdns.org")
     {
-        var subdomain = host.Split('.')[0];
-        logger.LogInformation(
-            "Subdomain detected: {Subdomain}, Original Path: {OriginalPath}",
-            subdomain,
-            context.Request.Path
-        );
-        
-        if (!string.IsNullOrEmpty(subdomain) && context.Request.Path == "/")
+        var parts = host.Split('.');
+        if (parts.Length > 2 && parts[0] != "www") // e.g. zxc.res-menu.duckdns.org
         {
-            // Rewrite the path to Menu and add subdomain to request features
-            context.Request.Path = "/Menu";
-            context.Items["Subdomain"] = subdomain;
+            detectedSubdomain = parts[0];
             logger.LogInformation(
-                "Request rewritten - New Path: {NewPath}, Subdomain: {Subdomain}",
-                context.Request.Path,
-                subdomain
+                "Subdomain Middleware - Subdomain detected from host: {Subdomain}, Original Path: {OriginalPath}",
+                detectedSubdomain,
+                context.Request.Path
             );
+        }
+    }
+    
+    if (!string.IsNullOrEmpty(detectedSubdomain))
+    {
+        // If a subdomain is detected via hostname, prioritize it and rewrite to /Menu
+        // This handles direct navigation to subdomain.res-menu.duckdns.org/any/path
+        // We are assuming that any path on a subdomain should show the menu.
+        // If there are other specific paths on subdomains (e.g., /api/...) they would need special handling here.
+
+        context.Request.Path = "/Menu"; // Force path to /Menu
+        context.Items["Subdomain"] = detectedSubdomain; // Set for MenuModel
+        
+        // Also add it as a query parameter, as MenuModel also checks this.
+        // This makes the MenuModel's logic more robust if HttpContext.Items isn't read as expected.
+        context.Request.QueryString = QueryString.Create("subdomain", detectedSubdomain);
+
+        logger.LogInformation(
+            "Subdomain Middleware - Request rewritten for subdomain. New Path: {NewPath}, Subdomain Item: {SubdomainItem}, QueryString: {QueryString}",
+            context.Request.Path,
+            context.Items["Subdomain"],
+            context.Request.QueryString.ToString()
+        );
+    }
+    else if (isLocalhost && context.Request.Path.StartsWithSegments("/Menu", StringComparison.OrdinalIgnoreCase) && context.Request.Query.ContainsKey("subdomain"))
+    {
+        // For localhost, if it's /Menu?subdomain=xxx, ensure HttpContext.Items["Subdomain"] is also set
+        // This helps MenuModel.cs if it prioritizes HttpContext.Items
+        var SParam = context.Request.Query["subdomain"].FirstOrDefault();
+        if(!string.IsNullOrEmpty(SParam))
+        {
+            context.Items["Subdomain"] = SParam;
+             logger.LogInformation(
+                "Subdomain Middleware - Localhost /Menu?subdomain=... detected. Set HttpContext.Items[\"Subdomain\"] = {Subdomain}", SParam);
         }
     }
     
@@ -374,4 +402,4 @@ static string SanitizeConnectionString(string connectionString)
 {
     var builder = new NpgsqlConnectionStringBuilder(connectionString);
     return $"Host={builder.Host};Database={builder.Database};Port={builder.Port}";
-} 
+}
