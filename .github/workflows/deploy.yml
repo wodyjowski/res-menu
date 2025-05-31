@@ -1,0 +1,23 @@
+name: Deploy Docker image
+on:
+  workflow_dispatch:  # uruchamiany ręcznie
+  workflow_run:
+    workflows: ["Build and push Docker image"]
+    types:
+      - completed
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # tylko po udanym buildzie
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy
+        uses: darnfish/watchtower-update@v3.2
+        with:
+          url: "${{ secrets.WATCHTOWER_URL }}"
+          api_token: "${{ secrets.WATCHTOWER_API_TOKEN }}"
