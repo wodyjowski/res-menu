@@ -6,6 +6,52 @@
     Layout = "_Layout";
 }
 
+@section Styles {
+    <style>
+        /* Theme-aware styling for Order Status page */
+        .card {
+            background-color: var(--card-bg);
+            border-color: var(--border);
+            color: var(--text);
+        }
+        
+        .table {
+            background-color: var(--card-bg);
+            color: var(--text);
+        }
+        
+        .table td,
+        .table th {
+            border-color: var(--border);
+            background-color: var(--card-bg);
+        }
+        
+        .table thead th {
+            background-color: var(--card-bg);
+            color: var(--text);
+        }
+        
+        .table tbody tr {
+            background-color: var(--card-bg);
+        }
+        
+        .table tfoot th {
+            background-color: var(--card-bg);
+            color: var(--text);
+        }
+        
+        .progress {
+            background-color: var(--border);
+        }
+        
+        .alert {
+            background-color: var(--card-bg);
+            border-color: var(--border);
+            color: var(--text);
+        }
+    </style>
+}
+
 <div class="container mt-4">
     @if (Model.Order == null)
     {

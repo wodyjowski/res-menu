@@ -139,19 +139,32 @@ public class MenuModel : PageModel
 
         return Page();
     }
-    
-    public async Task<IActionResult> OnPostCreateOrderAsync(string? subdomain)
+      public async Task<IActionResult> OnPostCreateOrderAsync(string? subdomain)
     {
-        // Load restaurant data first
+        _logger.LogInformation("Order creation started. Initial subdomain parameter: '{Subdomain}'", subdomain);
+        
+        // Load restaurant data first - use the same subdomain resolution logic as OnGetAsync
         if (string.IsNullOrEmpty(subdomain))
         {
-            subdomain = HttpContext.Items["Subdomain"] as string;
+            // Check query parameter
+            subdomain = HttpContext.Request.Query["subdomain"].FirstOrDefault();
+            _logger.LogInformation("Subdomain from query parameter: '{Subdomain}'", subdomain);
         }
         
         if (string.IsNullOrEmpty(subdomain))
         {
+            // Check HttpContext.Items (set by middleware)
+            subdomain = HttpContext.Items["Subdomain"] as string;
+            _logger.LogInformation("Subdomain from HttpContext.Items: '{Subdomain}'", subdomain);
+        }
+        
+        if (string.IsNullOrEmpty(subdomain))
+        {
+            _logger.LogError("No subdomain provided in order creation");
             return BadRequest("No subdomain provided");
         }
+
+        _logger.LogInformation("Final subdomain for order creation: '{Subdomain}'", subdomain);
 
         Restaurant = await _context.Restaurants
             .Include(r => r.MenuItems)
@@ -159,6 +172,7 @@ public class MenuModel : PageModel
 
         if (Restaurant == null)
         {
+            _logger.LogError("Restaurant not found for subdomain: {Subdomain}", subdomain);
             return NotFound($"Restaurant not found for subdomain: {subdomain}");
         }
 

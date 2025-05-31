@@ -32,8 +32,7 @@ public class Order
     public virtual Restaurant? Restaurant { get; set; }
     
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-    
-    // Unique identifier for customer tracking (stored in cookie)
+      // Unique identifier for customer tracking (stored in cookie)
     [Required]
     public string CustomerOrderId { get; set; } = Guid.NewGuid().ToString();
 }
