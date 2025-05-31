@@ -21,6 +21,9 @@ public class Restaurant
     public string? Description { get; set; }
     
     public string? LogoUrl { get; set; }
+
+    [StringLength(50)]
+    public string? FontFamily { get; set; }
     
     public virtual ICollection<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
-} 
+}

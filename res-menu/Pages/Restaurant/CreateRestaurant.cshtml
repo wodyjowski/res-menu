@@ -55,6 +55,27 @@
                                 Upload your restaurant's logo (optional). Supported formats: JPG, PNG, GIF
                             </small>
                         </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Restaurant.FontFamily" class="form-label">Font Family</label>
+                            <select asp-for="Restaurant.FontFamily" id="fontFamilySelect" class="form-control">
+                                <option value="">Default (Segoe UI)</option>
+                                <option value="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial</option>
+                                <option value="\'Times New Roman\', Times, serif" style="font-family: \'Times New Roman\', Times, serif;">Times New Roman</option>
+                                <option value="\'Courier New\', Courier, monospace" style="font-family: \'Courier New\', Courier, monospace;">Courier New</option>
+                                <option value="Georgia, serif" style="font-family: Georgia, serif;">Georgia</option>
+                                <option value="Verdana, sans-serif" style="font-family: Verdana, sans-serif;">Verdana</option>
+                                <option value="Tahoma, sans-serif" style="font-family: Tahoma, sans-serif;">Tahoma</option>
+                                <option value="Garamond, serif" style="font-family: Garamond, serif;">Garamond</option>
+                                <option value="\'Brush Script MT\', cursive" style="font-family: \'Brush Script MT\', cursive;">Brush Script MT</option>
+                                <option value="Impact, Charcoal, sans-serif" style="font-family: Impact, Charcoal, sans-serif;">Impact</option>
+                                <option value="\'Lucida Console\', Monaco, monospace" style="font-family: \'Lucida Console\', Monaco, monospace;">Lucida Console</option>
+                            </select>
+                            <span asp-validation-for="Restaurant.FontFamily" class="text-danger"></span>
+                            <div id="fontPreview" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                                The quick brown fox jumps over the lazy dog.
+                            </div>
+                        </div>
                         
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary btn-lg">Create Restaurant</button>
@@ -94,5 +115,18 @@
                 subdomainInput.focus();
             }
         });
+
+        // Font preview
+        const fontFamilySelect = document.getElementById('fontFamilySelect');
+        const fontPreview = document.getElementById('fontPreview');
+
+        fontFamilySelect.addEventListener('change', function() {
+            const selectedFont = this.value || 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'; // Default if empty
+            fontPreview.style.fontFamily = selectedFont;
+        });
+
+        // Initialize preview with current selection or default
+        const initialFont = fontFamilySelect.value || 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif';
+        fontPreview.style.fontFamily = initialFont;
     </script>
-} 
+}
