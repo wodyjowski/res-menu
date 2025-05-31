@@ -22,11 +22,13 @@
             {
                 <text>--primary: @Model.Restaurant.AccentColor !important;</text>
                 <text>--primary-hover: @Model.Restaurant.AccentColor !important;</text>
+                <text>--primary-subtle-bg: @(Model.Restaurant.AccentColor + "26") !important;</text> /* Added for subtle background with ~15% opacity */
             }
             else
             {
                 <text>--primary: #007bff !important;</text>
                 <text>--primary-hover: #0056b3 !important;</text>
+                <text>--primary-subtle-bg: #007bff26 !important;</text> /* Default subtle background with ~15% opacity */
             }
         }
         
@@ -53,27 +55,29 @@
         .menu-category {
             margin-bottom: 3rem;
         }        .menu-category h2 {
-            color: var(--text);
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 1rem;
-            position: relative;
+            color: var(--primary); /* Use primary color for category headers */
+            /* border-bottom: 2px solid var(--primary); */ /* Removed border */
+            padding-bottom: 0.5rem; /* Adjusted padding */
+            margin-bottom: 1.5rem; /* Added some space below header */
+            font-weight: 600;
+            /* position: relative; */ /* No longer needed for ::after */
         }
         
-        .menu-category h2::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 50px;
-            height: 2px;
-            background-color: var(--primary);
-        }
+        /* .menu-category h2::after { */ /* Removed ::after pseudo-element */
+            /* content: ''; */
+            /* position: absolute; */
+            /* bottom: -2px; */
+            /* left: 0; */
+            /* width: 50px; */
+            /* height: 2px; */
+            /* background-color: var(--primary); */
+        /* } */
           .menu-item {
             border-radius: 10px;
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             height: 100%;
             background: var(--card-bg);
-            border: 1px solid var(--border);
+            border: 1px solid var(--primary); /* Changed border to use primary color */
         }
         
         .menu-item:hover {
@@ -90,7 +94,7 @@
         }
         
         .menu-item-title {
-            color: var(--text);
+            color: var(--primary); /* Changed title to use primary color */
             font-size: 1.2rem;
             margin-bottom: 0.5rem;
         }
@@ -101,7 +105,7 @@
         }
         
         .price {
-            color: var(--primary);
+            color: var(--text-secondary); /* Changed price to use standard secondary text color */
             font-weight: 600;
             font-size: 1.1rem;
         }
@@ -111,23 +115,27 @@
             object-fit: contain;
         }
           .restaurant-name {
-            color: var(--text);
+            color: var(--primary); /* Use primary color for the restaurant name */
             font-weight: 700;
             margin: 1rem 0;
-            position: relative;
+            font-size: 2.5rem; /* Slightly larger font size */
+            background-color: var(--primary-subtle-bg); /* Added subtle background */
+            padding: 0.5rem 1rem; /* Added padding for the background */
+            border-radius: 5px; /* Added rounded corners for the background */
+            display: inline-block; /* Ensures background wraps content */
         }
         
-        .restaurant-name::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, var(--primary), transparent);
-            border-radius: 2px;
-        }
+        /* .restaurant-name::after { */ /* Removed ::after pseudo-element for underline */
+            /* content: ''; */
+            /* position: absolute; */
+            /* bottom: -10px; */
+            /* left: 50%; */
+            /* transform: translateX(-50%); */
+            /* width: 100px; */
+            /* height: 3px; */
+            /* background-color: var(--primary); */
+            /* border-radius: 2px; */
+        /* } */
         
         .restaurant-description {
             color: var(--text-secondary);
