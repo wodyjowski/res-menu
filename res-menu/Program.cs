@@ -257,9 +257,7 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseRouting();
-
-// Add subdomain routing middleware BEFORE authentication
+// Add subdomain routing middleware BEFORE UseRouting and authentication
 app.Use(async (context, next) =>
 {
     var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
@@ -323,12 +321,14 @@ app.Use(async (context, next) =>
         {
             context.Items["Subdomain"] = SParam;
              logger.LogInformation(
-                "Subdomain Middleware - Localhost /Menu?subdomain=... detected. Set HttpContext.Items[\"Subdomain\"] = {Subdomain}", SParam);
+                "Subdomain Middleware - Localhost /Menu?subdomain=... detected. Set HttpContext.Items[\\\"Subdomain\\\"] = {Subdomain}", SParam);
         }
     }
     
     await next();
 });
+
+app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
