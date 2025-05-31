@@ -55,6 +55,24 @@ html, body {
   text-align: start;
 }
 
+/* Fix for overlapping text in Bootstrap floating labels */
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+  opacity: 1;
+}
+
+.form-floating > .form-control::placeholder {
+  color: transparent; /* Hide placeholder when label is not floated */
+}
+
+.form-floating > .form-control:focus::placeholder {
+  color: #6c757d; /* Show placeholder on focus if needed, or keep transparent */
+}
+
+.form-floating > .form-control:not(:placeholder-shown) {
+  padding-top: 1.625rem; 
+  padding-bottom: .625rem;
+}
+
 /* General modern enhancements */
 .container {
   max-width: 1280px; /* Wider container for modern layouts */
@@ -71,6 +89,10 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700; /* Bolder headings */
   color: #1a2530; /* Even darker heading color */
   margin-bottom: 1rem; /* Consistent bottom margin for headings */
+}
+
+h4 {
+  font-size: 1.1rem; /* Reduced font size for h4 elements */
 }
 
 .btn {

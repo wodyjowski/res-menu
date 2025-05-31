@@ -108,21 +108,20 @@
             color: var(--text-secondary); /* Changed price to use standard secondary text color */
             font-weight: 600;
             font-size: 1.1rem;
-        }
-        
-        .restaurant-logo {
+        }          .restaurant-logo {
             max-height: 150px;
             object-fit: contain;
-        }
-          .restaurant-name {
+            display: block;
+            margin: 0 auto 1.5rem auto; /* Center the image and add more bottom margin */
+        }          .restaurant-name {
             color: var(--primary); /* Use primary color for the restaurant name */
             font-weight: 700;
-            margin: 1rem 0;
+            margin: 0 0 1rem 0; /* Remove top margin, keep bottom margin */
             font-size: 2.5rem; /* Slightly larger font size */
             background-color: var(--primary-subtle-bg); /* Added subtle background */
             padding: 0.5rem 1rem; /* Added padding for the background */
             border-radius: 5px; /* Added rounded corners for the background */
-            display: inline-block; /* Ensures background wraps content */
+            display: inline-block; /* Back to inline-block so background wraps text */
         }
         
         /* .restaurant-name::after { */ /* Removed ::after pseudo-element for underline */
@@ -171,8 +170,7 @@
             </div>
         }
         else
-        {
-            <div class="menu-header">
+        {            <div class="menu-header">
                 <div class="container text-center">
                     @if (!string.IsNullOrEmpty(Model.Restaurant.LogoUrl))
                     {
