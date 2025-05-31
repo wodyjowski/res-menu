@@ -20,7 +20,7 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 // Configure Kestrel to use HTTPS
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    serverOptions.ListenAnyIP(80); // HTTP - always available
+    serverOptions.ListenAnyIP(8888); // HTTP - use port 8888 instead of 80
     
     // Only configure HTTPS if we're in development or have valid certificates
     if (builder.Environment.IsDevelopment())

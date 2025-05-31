@@ -1,10 +1,11 @@
 ﻿version: '3.8'
 
-services:  res-menu:
+services:
+  res-menu:
     container_name: res-menu
     image: "ghcr.io/wodyjowski/res-menu:master"
     ports:
-      - "80:80"
+      - "8888:8888"
       - "443:443"
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
