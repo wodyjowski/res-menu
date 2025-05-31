@@ -76,6 +76,26 @@
                                 The quick brown fox jumps over the lazy dog.
                             </div>
                         </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Restaurant.AccentColor" class="form-label">Accent Color</label>
+                            <div class="input-group">
+                                <input type="color" asp-for="Restaurant.AccentColor" id="accentColorPicker" class="form-control form-control-color" value="#007bff" style="width: 60px;" />
+                                <input type="text" asp-for="Restaurant.AccentColor" id="accentColorText" class="form-control" placeholder="#007bff" pattern="^#[0-9A-Fa-f]{6}$" title="Enter a valid hex color code (e.g., #FF5733)" />
+                            </div>
+                            <span asp-validation-for="Restaurant.AccentColor" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Choose your restaurant's accent color. This will be used for buttons, highlights, and other branded elements.
+                            </small>
+                            <div id="colorPreview" style="margin-top: 10px; padding: 15px; border-radius: 4px; background-color: var(--card-bg, #f8f9fa); text-align: center;">
+                                <button type="button" class="btn btn-primary preview-btn" style="background-color: #007bff; border-color: #007bff;">
+                                    Sample Button
+                                </button>
+                                <div class="mt-2" style="color: #007bff; font-weight: bold;">
+                                    Sample Accent Text
+                                </div>
+                            </div>
+                        </div>
                         
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary btn-lg">Create Restaurant</button>
@@ -128,5 +148,36 @@
         // Initialize preview with current selection or default
         const initialFont = fontFamilySelect.value || 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif';
         fontPreview.style.fontFamily = initialFont;
+
+        // Accent color picker
+        const accentColorPicker = document.getElementById('accentColorPicker');
+        const accentColorText = document.getElementById('accentColorText');
+        const colorPreview = document.getElementById('colorPreview');
+
+        accentColorPicker.addEventListener('input', function() {
+            const color = this.value;
+            accentColorText.value = color;
+            updateColorPreview(color);
+        });
+
+        accentColorText.addEventListener('input', function() {
+            const color = this.value;
+            if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+                accentColorPicker.value = color;
+                updateColorPreview(color);
+            }
+        });
+
+        function updateColorPreview(color) {
+            const previewBtn = colorPreview.querySelector('.preview-btn');
+            const previewText = colorPreview.querySelector('div');
+            previewBtn.style.backgroundColor = color;
+            previewBtn.style.borderColor = color;
+            previewText.style.color = color;
+        }
+
+        // Initialize color preview with default value
+        const initialColor = accentColorPicker.value;
+        updateColorPreview(initialColor);
     </script>
 }

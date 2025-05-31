@@ -6,6 +6,24 @@
 }
 
 <style>
+    :root {
+        @if (!string.IsNullOrEmpty(Model.Restaurant?.AccentColor))
+        {
+            <text>--primary: @Model.Restaurant.AccentColor;</text>
+            <text>--primary-hover: @Model.Restaurant.AccentColor;</text>
+        }
+    }
+    
+    .btn-primary {
+        background-color: var(--primary, #1b6ec2);
+        border-color: var(--primary, #1b6ec2);
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--primary-hover, #1861ac);
+        border-color: var(--primary-hover, #1861ac);
+    }
+    
     .card {
         transition: transform 0.2s ease-in-out;
     }
@@ -163,4 +181,4 @@
             }
         });
     </script>
-} 
+}

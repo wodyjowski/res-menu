@@ -17,8 +17,15 @@
     <link rel="stylesheet" href="css/dark-theme.css" asp-append-version="true"/>
     <link rel="stylesheet" href="res_menu.styles.css" asp-append-version="true"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
-    <style>
+      <style>
+        :root {
+            @if (!string.IsNullOrEmpty(Model.Restaurant?.AccentColor))
+            {
+                <text>--primary: @Model.Restaurant.AccentColor;</text>
+                <text>--primary-hover: @Model.Restaurant.AccentColor;</text>
+            }
+        }
+        
         body {
             font-family: @(Model.Restaurant?.FontFamily ?? "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif");
             min-height: 100vh;

@@ -24,6 +24,10 @@ public class Restaurant
 
     [StringLength(50)]
     public string? FontFamily { get; set; }
+
+    [StringLength(7)]
+    [RegularExpression(@"^#[0-9A-Fa-f]{6}$", ErrorMessage = "Please enter a valid hex color code (e.g., #FF5733)")]
+    public string? AccentColor { get; set; }
     
     public virtual ICollection<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
 }
