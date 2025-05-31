@@ -248,7 +248,7 @@ app.Use(async (context, next) =>
 {
     var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
     var host = context.Request.Host.Host.ToLower();
-    var isLocalhost = host == "localhost" || host.StartsWith("127.") || host.StartsWith("192.168.");
+    var isLocalhost = host == "localhost" || host.StartsWith("127.") || host.StartsWith("192.168.") || host.StartsWith("10.");
     
     logger.LogInformation(
         "Request received - Host: {Host}, Path: {Path}, IsLocalhost: {IsLocalhost}",
@@ -267,14 +267,15 @@ app.Use(async (context, next) =>
             context.Request.Path
         );
         
-        if (!string.IsNullOrEmpty(subdomain))
+        if (!string.IsNullOrEmpty(subdomain) && context.Request.Path == "/")
         {
+            // Rewrite the path to Menu and add subdomain to request features
             context.Request.Path = "/Menu";
-            context.Request.QueryString = context.Request.QueryString.Add("subdomain", subdomain);
+            context.Items["Subdomain"] = subdomain;
             logger.LogInformation(
-                "Request rewritten - New Path: {NewPath}, QueryString: {QueryString}",
+                "Request rewritten - New Path: {NewPath}, Subdomain: {Subdomain}",
                 context.Request.Path,
-                context.Request.QueryString
+                subdomain
             );
         }
     }
