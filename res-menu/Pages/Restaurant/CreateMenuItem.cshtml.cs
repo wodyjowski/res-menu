@@ -2,42 +2,38 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using res_menu.Data;
 using res_menu.Models;
-using res_menu.Services;
-using res_menu.Validation;
-using System.ComponentModel.DataAnnotations;
 
 namespace res_menu.Pages.Restaurant;
 
 [Authorize]
 public class CreateMenuItemModel : PageModel
 {
-    private readonly IRestaurantService _restaurantService;
-    private readonly IMenuItemService _menuItemService;
+    private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly ILogger<CreateMenuItemModel> _logger;
+    private readonly IWebHostEnvironment _environment;
 
     public CreateMenuItemModel(
-        IRestaurantService restaurantService,
-        IMenuItemService menuItemService,
+        ApplicationDbContext context,
         UserManager<IdentityUser> userManager,
-        ILogger<CreateMenuItemModel> logger)
+        IWebHostEnvironment environment)
     {
-        _restaurantService = restaurantService;
-        _menuItemService = menuItemService;
+        _context = context;
         _userManager = userManager;
-        _logger = logger;
+        _environment = environment;
     }
 
     [BindProperty]
     public MenuItem MenuItem { get; set; } = new() { IsAvailable = true };
 
     [BindProperty]
-    [FileUploadValidation(MaxFileSizeBytes = 10 * 1024 * 1024, IsRequired = false)]
-    [Display(Name = "Item Image")]
     public IFormFile? ImageFile { get; set; }
 
-    public List<string> ExistingCategories { get; set; } = new();    public async Task<IActionResult> OnGetAsync()
+    public List<string> ExistingCategories { get; set; } = new();
+
+    public async Task<IActionResult> OnGetAsync()
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
@@ -45,15 +41,26 @@ public class CreateMenuItemModel : PageModel
             return NotFound();
         }
 
-        var restaurant = await _restaurantService.GetRestaurantByOwnerIdAsync(user.Id);
+        var restaurant = await _context.Restaurants
+            .FirstOrDefaultAsync(r => r.OwnerId == user.Id);
+
         if (restaurant == null)
         {
             return RedirectToPage("./CreateRestaurant");
-        }        // Get existing categories for the restaurant
-        ExistingCategories = await _menuItemService.GetCategoriesByRestaurantIdAsync(restaurant.Id);
+        }
+
+        // Get existing categories for the restaurant
+        ExistingCategories = await _context.MenuItems
+            .Where(m => m.RestaurantId == restaurant.Id && !string.IsNullOrEmpty(m.Category))
+            .Select(m => m.Category!)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync();
 
         return Page();
-    }    public async Task<IActionResult> OnPostAsync()
+    }
+
+    public async Task<IActionResult> OnPostAsync()
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
@@ -61,42 +68,40 @@ public class CreateMenuItemModel : PageModel
             return NotFound();
         }
 
-        var restaurant = await _restaurantService.GetRestaurantByOwnerIdAsync(user.Id);
+        var restaurant = await _context.Restaurants
+            .FirstOrDefaultAsync(r => r.OwnerId == user.Id);
+
         if (restaurant == null)
         {
             return RedirectToPage("./CreateRestaurant");
-        }        // Get existing categories for validation display
-        ExistingCategories = await _menuItemService.GetCategoriesByRestaurantIdAsync(restaurant.Id);
+        }
 
         if (!ModelState.IsValid)
         {
             return Page();
         }
 
-        MenuItem.RestaurantId = restaurant.Id;        try
+        MenuItem.RestaurantId = restaurant.Id;
+
+        if (ImageFile != null)
         {
-            var result = await _menuItemService.CreateMenuItemAsync(MenuItem, ImageFile, user.Id);
-            
-            if (result.Success)
+            var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "menu-items");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueFileName = $"{Guid.NewGuid()}_{ImageFile.FileName}";
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
-                _logger.LogInformation("Menu item created successfully: {MenuItemName} for restaurant {RestaurantId}", 
-                    MenuItem.Name, restaurant.Id);
-                return RedirectToPage("./ManageMenu");
+                await ImageFile.CopyToAsync(fileStream);
             }
-            else
-            {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError("", error);
-                }
-                return Page();
-            }
+
+            MenuItem.ImageUrl = $"/uploads/menu-items/{uniqueFileName}";
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating menu item");
-            ModelState.AddModelError("", "An error occurred while creating the menu item. Please try again.");
-            return Page();
-        }
+
+        _context.MenuItems.Add(MenuItem);
+        await _context.SaveChangesAsync();
+
+        return RedirectToPage("./ManageMenu");
     }
 } 

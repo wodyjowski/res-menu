@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Npgsql;
 using System.Net.Sockets;
 using Microsoft.AspNetCore.Localization;
-using res_menu.Extensions;
-using res_menu.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 

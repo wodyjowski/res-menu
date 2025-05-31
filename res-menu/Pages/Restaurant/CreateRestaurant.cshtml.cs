@@ -2,26 +2,30 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using res_menu.Services;
-using res_menu.Validation;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using res_menu.Data;
+using res_menu.Models;
 
 namespace res_menu.Pages.Restaurant;
 
 [Authorize]
 public class CreateRestaurantModel : PageModel
 {
-    private readonly IRestaurantService _restaurantService;
+    private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly IWebHostEnvironment _environment;
     private readonly ILogger<CreateRestaurantModel> _logger;
 
     public CreateRestaurantModel(
-        IRestaurantService restaurantService,
+        ApplicationDbContext context,
         UserManager<IdentityUser> userManager,
+        IWebHostEnvironment environment,
         ILogger<CreateRestaurantModel> logger)
     {
-        _restaurantService = restaurantService;
+        _context = context;
         _userManager = userManager;
+        _environment = environment;
         _logger = logger;
     }
 
@@ -29,8 +33,6 @@ public class CreateRestaurantModel : PageModel
     public Models.Restaurant Restaurant { get; set; } = new();
 
     [BindProperty]
-    [FileUploadValidation(MaxFileSizeBytes = 5 * 1024 * 1024, IsRequired = false)]
-    [Display(Name = "Restaurant Logo")]
     public IFormFile? LogoFile { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
@@ -42,7 +44,9 @@ public class CreateRestaurantModel : PageModel
             return NotFound();
         }
 
-        var existingRestaurant = await _restaurantService.GetRestaurantByOwnerIdAsync(user.Id);
+        var existingRestaurant = await _context.Restaurants
+            .FirstOrDefaultAsync(r => r.OwnerId == user.Id);
+
         if (existingRestaurant != null)
         {
             _logger.LogInformation("User already has a restaurant, redirecting to ManageMenu");
@@ -63,11 +67,8 @@ public class CreateRestaurantModel : PageModel
             return NotFound();
         }
 
-        // Set OwnerId before model validation - this must be done first
+        // Set OwnerId before model validation
         Restaurant.OwnerId = user.Id;
-        
-        // Remove OwnerId from model state validation since we set it programmatically
-        ModelState.Remove("Restaurant.OwnerId");
 
         if (!ModelState.IsValid)
         {
@@ -78,42 +79,48 @@ public class CreateRestaurantModel : PageModel
             return Page();
         }
 
+        // Check if subdomain is already taken
+        var subdomainExists = await _context.Restaurants
+            .AnyAsync(r => r.Subdomain.ToLower() == Restaurant.Subdomain.ToLower());
+
+        if (subdomainExists)
+        {
+            _logger.LogWarning("Subdomain {Subdomain} is already taken", Restaurant.Subdomain);
+            ModelState.AddModelError("Restaurant.Subdomain", "This subdomain is already taken.");
+            return Page();
+        }
+
         try
         {
-            _logger.LogInformation("Creating restaurant: {RestaurantName}", Restaurant.Name);
-            
-            var result = await _restaurantService.CreateRestaurantAsync(Restaurant, LogoFile);
-            
-            if (!result.Success)
+            if (LogoFile != null)
             {
-                _logger.LogWarning("Restaurant creation failed: {Errors}", string.Join("; ", result.Errors));
-                foreach (var error in result.Errors)
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "logos");
+                Directory.CreateDirectory(uploadsFolder);
+
+                var uniqueFileName = $"{Guid.NewGuid()}_{LogoFile.FileName}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                _logger.LogInformation("Saving logo file to: {FilePath}", filePath);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
-                    if (error.Contains("subdomain", StringComparison.OrdinalIgnoreCase) || 
-                        error.Contains("Subdomain", StringComparison.OrdinalIgnoreCase))
-                    {
-                        ModelState.AddModelError("Restaurant.Subdomain", error);
-                    }
-                    else if (error.Contains("logo", StringComparison.OrdinalIgnoreCase) || 
-                             error.Contains("Logo", StringComparison.OrdinalIgnoreCase))
-                    {
-                        ModelState.AddModelError("LogoFile", error);
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, error);
-                    }
+                    await LogoFile.CopyToAsync(fileStream);
                 }
-                return Page();
+
+                Restaurant.LogoUrl = $"/uploads/logos/{uniqueFileName}";
             }
 
-            _logger.LogInformation("Restaurant created successfully with ID: {RestaurantId}", result.Data?.Id);
+            _logger.LogInformation("Adding restaurant to database: {RestaurantName}", Restaurant.Name);
+            _context.Restaurants.Add(Restaurant);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Restaurant created successfully");
+
             return RedirectToPage("./ManageMenu");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating restaurant: {RestaurantName}", Restaurant.Name);
-            ModelState.AddModelError(string.Empty, "An unexpected error occurred while creating the restaurant. Please try again.");
+            _logger.LogError(ex, "Error creating restaurant");
+            ModelState.AddModelError(string.Empty, "An error occurred while creating the restaurant. Please try again.");
             return Page();
         }
     }
