@@ -21,47 +21,60 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 // Configure Kestrel to use HTTPS
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    serverOptions.ListenAnyIP(80); // HTTP
-    serverOptions.ListenAnyIP(443, listenOptions =>
-    {        listenOptions.UseHttps(httpsOptions =>
+    serverOptions.ListenAnyIP(80); // HTTP - always available
+    
+    // Only configure HTTPS if we're in development or have valid certificates
+    if (builder.Environment.IsDevelopment())
+    {
+        serverOptions.ListenAnyIP(443, listenOptions =>
         {
-            // Auto-generate development certificate if not in production
-            if (builder.Environment.IsDevelopment())
-            {
-                return;
-            }
-            
-            // In production, use Let's Encrypt certificate
-            var certPath = "/etc/letsencrypt/live/res-menu.duckdns.org/fullchain.pem";
-            var keyPath = "/etc/letsencrypt/live/res-menu.duckdns.org/privkey.pem";
-            
-            // Check if certificate files exist and log accordingly
+            listenOptions.UseHttps(); // Uses development certificate
+        });
+    }
+    else
+    {
+        // In production, check for Let's Encrypt certificates first
+        var certPath = "/etc/letsencrypt/live/res-menu.duckdns.org/fullchain.pem";
+        var keyPath = "/etc/letsencrypt/live/res-menu.duckdns.org/privkey.pem";
+        
+        if (File.Exists(certPath) && File.Exists(keyPath))
+        {
+            // Create a temporary service provider to get logger
             var tempServiceProvider = builder.Services.BuildServiceProvider();
             var logger = tempServiceProvider.GetRequiredService<ILogger<Program>>();
             tempServiceProvider.Dispose();
             
-            if (File.Exists(certPath) && File.Exists(keyPath))
+            logger.LogInformation("SSL certificate files found successfully. Certificate: {CertPath}, Key: {KeyPath}", certPath, keyPath);
+            
+            serverOptions.ListenAnyIP(443, listenOptions =>
             {
-                logger.LogInformation("SSL certificate files found successfully. Certificate: {CertPath}, Key: {KeyPath}", certPath, keyPath);
-                httpsOptions.ServerCertificateFile = certPath;
-                httpsOptions.ServerCertificatePrivateKeyFile = keyPath;
-            }
-            else
+                listenOptions.UseHttps(httpsOptions =>
+                {
+                    httpsOptions.ServerCertificateFile = certPath;
+                    httpsOptions.ServerCertificatePrivateKeyFile = keyPath;
+                });
+            });
+        }
+        else
+        {
+            // Create a temporary service provider to get logger
+            var tempServiceProvider = builder.Services.BuildServiceProvider();
+            var logger = tempServiceProvider.GetRequiredService<ILogger<Program>>();
+            tempServiceProvider.Dispose();
+            
+            if (!File.Exists(certPath))
             {
-                if (!File.Exists(certPath))
-                {
-                    logger.LogError("SSL certificate file not found at path: {CertPath}", certPath);
-                }
-                
-                if (!File.Exists(keyPath))
-                {
-                    logger.LogError("SSL private key file not found at path: {KeyPath}", keyPath);
-                }
-                
-                logger.LogWarning("SSL certificates not found. HTTPS will use default certificate or may not work properly.");
+                logger.LogError("SSL certificate file not found at path: {CertPath}", certPath);
             }
-        });
-    });
+            
+            if (!File.Exists(keyPath))
+            {
+                logger.LogError("SSL private key file not found at path: {KeyPath}", keyPath);
+            }
+            
+            logger.LogWarning("SSL certificates not found. HTTPS endpoint will not be available until certificates are configured.");
+        }
+    }
 });
 
 // Add services to the container.
