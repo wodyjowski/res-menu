@@ -1,6 +1,5 @@
 name: Deploy Docker image
 on:
-  workflow_dispatch:  # uruchamiany ręcznie
   workflow_run:
     workflows: ["Build and push Docker image"]
     types:
