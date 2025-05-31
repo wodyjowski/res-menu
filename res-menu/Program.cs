@@ -109,8 +109,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     });
 });
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
-
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // Configure Data Protection
@@ -129,7 +127,7 @@ else
 }
 
 // Configure Identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => {
+builder.Services.AddDefaultIdentity<IdentityUser>(options => {
     options.SignIn.RequireConfirmedAccount = false;
     options.SignIn.RequireConfirmedEmail = false;
     options.Password.RequireDigit = false;
