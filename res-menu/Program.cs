@@ -139,6 +139,9 @@ builder.Services.ConfigureApplicationCookie(options => {
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
+// Register dynamic port service
+builder.Services.AddScoped<ResMenu.Services.IDynamicPortService, ResMenu.Services.DynamicPortService>();
+
 builder.Services.AddRazorPages(options => {
     // Make Menu page publicly accessible
     options.Conventions.AllowAnonymousToPage("/Menu");
@@ -221,6 +224,23 @@ app.Use(async (context, next) =>
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// Add port detection middleware to store current port in cookie
+app.Use(async (context, next) =>
+{
+    var portService = context.RequestServices.GetRequiredService<ResMenu.Services.IDynamicPortService>();
+    var currentPort = context.Request.Host.Port ?? (context.Request.IsHttps ? 443 : 80);
+    
+    // Store port in cookie if it's different from the stored one
+    var storedPort = portService.GetPortFromCookie(context);
+    if (!storedPort.HasValue || storedPort.Value != currentPort)
+    {
+        portService.StorePortInCookie(context, currentPort);
+    }
+    
+    await next();
+});
+
 app.UseRouting();
 
 // Add subdomain routing middleware BEFORE authentication

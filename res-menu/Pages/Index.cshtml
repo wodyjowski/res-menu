@@ -1,4 +1,5 @@
 ﻿@page
+@using ResMenu.Extensions
 @model res_menu.Pages.IndexModel
 @{
     ViewData["Title"] = "Restaurant Menu System";
@@ -21,13 +22,9 @@
                         <div class="d-grid gap-3">
                             <a asp-page="/Restaurant/ManageMenu" class="btn btn-primary btn-lg">
                                 <i class="bi bi-list-check me-2"></i>Manage Menu
-                            </a>
-                            @if (Model.Restaurant != null)
+                            </a>                            @if (Model.Restaurant != null)
                             {
-                                var isLocalhost = Request.Host.Host == "localhost" || Request.Host.Host.StartsWith("127.") || Request.Host.Host.StartsWith("192.168.");
-                                var menuUrl = isLocalhost
-                                    ? $"{Request.Scheme}://{Request.Host}/Menu?subdomain={Model.Restaurant.Subdomain}"
-                                    : $"{Request.Scheme}://{Model.Restaurant.Subdomain}.res-menu.duckdns.org";
+                                var menuUrl = HttpContext.BuildMenuUrl(Model.Restaurant.Subdomain);
                                 <a href="@menuUrl" class="btn btn-outline-primary" target="_blank">
                                     <i class="bi bi-eye me-2"></i>Preview Menu
                                 </a>
@@ -116,7 +113,7 @@
                 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname.startsWith('127.') || window.location.hostname.startsWith('192.168.');
                 const menuUrl = isLocalhost
                     ? '@($"{Request.Scheme}://{Request.Host}/Menu?subdomain={Model.Restaurant.Subdomain}")'
-                    : '@($"{Request.Scheme}://{Model.Restaurant.Subdomain}.res-menu.duckdns.org")';
+                    : '@($"{Request.Scheme}://{Model.Restaurant.Subdomain}.res-menu.duckdns.org:8888")';
                 const qr = qrcode(0, 'M');
                 qr.addData(menuUrl);
                 qr.make();
