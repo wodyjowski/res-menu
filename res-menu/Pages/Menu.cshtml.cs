@@ -22,10 +22,39 @@ public class MenuModel : PageModel
     public res_menu.Models.Restaurant? Restaurant { get; set; }
     public List<MenuItem> MenuItems { get; set; } = new();    public async Task<IActionResult> OnGetAsync(string? subdomain)
     {
-        // Check for subdomain in query string first, then in request items (from middleware)
+        // Check for subdomain in query string first
         if (string.IsNullOrEmpty(subdomain))
         {
+            // Then check in request items (from middleware)
             subdomain = HttpContext.Items["Subdomain"] as string;
+        }
+
+        // If still no subdomain, try to extract from hostname
+        if (string.IsNullOrEmpty(subdomain))
+        {
+            var host = Request.Host.Host;
+            // Assuming the format is subdomain.res-menu.duckdns.org
+            // and not just res-menu.duckdns.org (which would be the main site)
+            if (host.EndsWith(".res-menu.duckdns.org") && host != "res-menu.duckdns.org")
+            {
+                var parts = host.Split('.');
+                if (parts.Length > 3) // e.g., mysub.res-menu.duckdns.org
+                {
+                    subdomain = parts[0];
+                    _logger.LogInformation("Extracted subdomain '{Subdomain}' from host '{Host}'", subdomain, host);
+                }
+            }
+            // Handle custom domains or other patterns if necessary
+            // Example for *.localhost:PORT which might be used in development
+            else if (host.Contains(".localhost") && !host.StartsWith("localhost")) // e.g. mysub.localhost:7000
+            {
+                 var parts = host.Split('.');
+                 if (parts.Length > 1 && parts[0] != "localhost") // ensure it's not just localhost.someotherpart
+                 {
+                    subdomain = parts[0];
+                    _logger.LogInformation("Extracted subdomain '{Subdomain}' from localhost host '{Host}'", subdomain, host);
+                 }
+            }
         }
 
         // Log the request details for debugging
@@ -61,4 +90,4 @@ public class MenuModel : PageModel
 
         return Page();
     }
-} 
+}
