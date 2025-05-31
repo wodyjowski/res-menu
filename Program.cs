@@ -36,6 +36,24 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
             var certPath = "/etc/letsencrypt/live/res-menu.duckdns.org/fullchain.pem";
             var keyPath = "/etc/letsencrypt/live/res-menu.duckdns.org/privkey.pem";
             
+            // Check if certificate files exist and log accordingly
+            var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+            
+            if (!File.Exists(certPath))
+            {
+                logger.LogError("SSL certificate file not found at path: {CertPath}", certPath);
+            }
+            
+            if (!File.Exists(keyPath))
+            {
+                logger.LogError("SSL private key file not found at path: {KeyPath}", keyPath);
+            }
+            
+            if (File.Exists(certPath) && File.Exists(keyPath))
+            {
+                logger.LogInformation("SSL certificate files found successfully. Certificate: {CertPath}, Key: {KeyPath}", certPath, keyPath);
+            }
+            
             httpsOptions.ServerCertificateFile = certPath;
             httpsOptions.ServerCertificatePrivateKeyFile = keyPath;
         });
