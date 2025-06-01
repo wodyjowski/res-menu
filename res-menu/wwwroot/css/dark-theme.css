@@ -105,6 +105,117 @@ body {
     color: var(--text);
 }
 
+/* Fix for autocomplete suggestions */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--background-darker) inset !important;
+    -webkit-text-fill-color: var(--text) !important;
+}
+
+/* Fix for native browser autocomplete dropdown */
+input:-webkit-autofill {
+    background-color: var(--background-darker) !important;
+}
+
+select:-webkit-autofill {
+    background-color: var(--background-darker) !important;
+}
+
+/* Override browser's autocomplete styles */
+input:-webkit-autofill::selection {
+    background-color: var(--background-darker) !important;
+}
+
+/* Style the autocomplete suggestions dropdown */
+::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+select option,
+datalist option,
+input::-webkit-calendar-picker-indicator,
+input::-webkit-list-button {
+    background-color: var(--card-bg) !important;
+    color: var(--text) !important;
+}
+
+/* Style for Chromium-based browsers */
+input::-webkit-list-button,
+select::-webkit-list-button {
+    background-color: var(--card-bg) !important;
+}
+
+/* Style for Firefox */
+select:-moz-focusring {
+    color: transparent !important;
+    text-shadow: 0 0 0 var(--text) !important;
+}
+
+option {
+    background-color: var(--card-bg) !important;
+    color: var(--text) !important;
+}
+
+select option {
+    background-color: var(--card-bg) !important;
+    color: var(--text) !important;
+    padding: 8px !important;
+}
+
+/* Additional styles for dropdown items */
+select option:checked,
+select option:hover,
+select option:focus {
+    background-color: var(--primary) !important;
+    color: white !important;
+}
+
+/* Style for autocomplete suggestions box */
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+    background-color: var(--background-darker) !important;
+    color: var(--text) !important;
+    -webkit-box-shadow: 0 0 0px 1000px var(--background-darker) inset !important;
+    -webkit-text-fill-color: var(--text) !important;
+}
+
+/* Additional styles for Chrome's autocomplete dropdown */
+input:-webkit-autofill::first-line {
+    color: var(--text) !important;
+}
+
+/* Firefox specific styles */
+@-moz-document url-prefix() {
+    select,
+    select option {
+        background-color: var(--card-bg) !important;
+        color: var(--text) !important;
+    }
+}
+
+/* Microsoft Edge specific styles */
+@supports (-ms-ime-align: auto) {
+    select,
+    select option {
+        background-color: var(--card-bg) !important;
+        color: var(--text) !important;
+    }
+}
+
+/* Safari specific styles */
+@media not all and (min-resolution:.001dpcm) {
+    @supports (-webkit-appearance:none) {
+        select,
+        select option {
+            background-color: var(--card-bg) !important;
+            color: var(--text) !important;
+        }
+    }
+}
+
 /* Tables */
 .table {
     color: var(--text) !important;
@@ -183,21 +294,67 @@ body {
 
 /* Dropdowns */
 .dropdown-menu {
-    background-color: var(--card-bg);
-    border-color: var(--border);
+    background-color: var(--card-bg) !important;
+    border-color: var(--border) !important;
 }
 
 .dropdown-item {
-    color: var(--text);
+    color: var(--text) !important;
+    background-color: var(--card-bg) !important;
 }
 
-.dropdown-item:hover {
-    background-color: var(--background);
-    color: var(--text);
+.dropdown-item:hover,
+.dropdown-item:focus,
+.dropdown-item:active {
+    color: var(--text) !important;
+    background-color: var(--background) !important;
+}
+
+.dropdown-item.active {
+    color: white !important;
+    background-color: var(--primary) !important;
+}
+
+/* Bootstrap dropdown specific fixes */
+.dropdown-menu.show {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border) !important;
+}
+
+.dropdown-menu .dropdown-item {
+    color: var(--text) !important;
+    background-color: var(--card-bg) !important;
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
+    color: var(--text) !important;
+    background-color: var(--background) !important;
+}
+
+.dropdown-menu .dropdown-item.active,
+.dropdown-menu .dropdown-item:active {
+    color: white !important;
+    background-color: var(--primary) !important;
+}
+
+/* Fix for Bootstrap's dark dropdown */
+.dropdown-menu-dark {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border) !important;
+}
+
+.dropdown-menu-dark .dropdown-item {
+    color: var(--text) !important;
+}
+
+.dropdown-menu-dark .dropdown-item:hover,
+.dropdown-menu-dark .dropdown-item:focus {
+    background-color: var(--background) !important;
 }
 
 .dropdown-divider {
-    border-color: var(--border);
+    border-color: var(--border) !important;
 }
 
 /* Progress bars */
