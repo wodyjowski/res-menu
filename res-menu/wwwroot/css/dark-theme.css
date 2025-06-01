@@ -5,6 +5,7 @@
     --card-bg: #242424;
     --text: #e0e0e0;
     --text-muted: #a0a0a0;
+    --text-secondary: #b0b0b0;
     --border: #333333;
     --primary: #0d6efd;
     --primary-hover: #0b5ed7;
@@ -16,6 +17,7 @@
     --card-bg: #ffffff;
     --text: #212529;
     --text-muted: #6c757d;
+    --text-secondary: #495057;
     --border: #dee2e6;
     --primary: #0d6efd;
     --primary-hover: #0b5ed7;
@@ -66,6 +68,10 @@ body {
 /* Text utilities */
 .text-muted {
     color: var(--text-muted) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
 }
 
 /* Buttons */
@@ -217,4 +223,16 @@ body {
 
 .border {
     border-color: var(--border) !important;
+}
+
+/* Fix for dark text in light theme */
+[data-theme="light"] {
+    .text-dark {
+        color: var(--text) !important;
+    }
+    
+    .navbar-brand,
+    .nav-link {
+        color: var(--text) !important;
+    }
 }

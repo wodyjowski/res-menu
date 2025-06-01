@@ -291,30 +291,59 @@ app.Use(async (context, next) =>
             );
         }
     }
-    
-    if (!string.IsNullOrEmpty(detectedSubdomain))
+      if (!string.IsNullOrEmpty(detectedSubdomain))
     {
-        // If a subdomain is detected via hostname, prioritize it and rewrite to /Menu
-        // This handles direct navigation to subdomain.res-menu.duckdns.org/any/path
-        // We are assuming that any path on a subdomain should show the menu.
-        // If there are other specific paths on subdomains (e.g., /api/...) they would need special handling here.
-
-        logger.LogInformation("Changing request path to include subdomain: {Subdomain}", detectedSubdomain);
-        
-        context.Request.Path = $"/Menu/{detectedSubdomain}"; // Force path to /Menu/subdomain
-        context.Items["Subdomain"] = detectedSubdomain; // Set for MenuModel
-        
-        // Also add it as a query parameter, as MenuModel also checks this.
-        // This makes the MenuModel's logic more robust if HttpContext.Items isn't read as expected
-        // or if the route parameter isn't picked up as expected.
-        context.Request.QueryString = QueryString.Create("subdomain", detectedSubdomain);
-
-        logger.LogInformation(
-            "Subdomain Middleware - Request rewritten for subdomain. New Path: {NewPath}, Subdomain Item: {SubdomainItem}, QueryString: {QueryString}",
-            context.Request.Path,
-            context.Items["Subdomain"],
-            context.Request.QueryString.ToString()
+        // Check if this is a static file request that should not be rewritten
+        var path = context.Request.Path.Value?.ToLower();
+        var isStaticFile = !string.IsNullOrEmpty(path) && (
+            path.StartsWith("/lib/") ||
+            path.StartsWith("/css/") ||
+            path.StartsWith("/js/") ||
+            path.StartsWith("/images/") ||
+            path.StartsWith("/uploads/") ||
+            path.StartsWith("/favicon.ico") ||
+            path.Contains(".css") ||
+            path.Contains(".js") ||
+            path.Contains(".png") ||
+            path.Contains(".jpg") ||
+            path.Contains(".jpeg") ||
+            path.Contains(".gif") ||
+            path.Contains(".svg") ||
+            path.Contains(".ico") ||
+            path.Contains(".woff") ||
+            path.Contains(".woff2") ||
+            path.Contains(".ttf") ||
+            path.Contains(".eot")
         );
+
+        if (isStaticFile)
+        {
+            logger.LogInformation("Static file request detected, not rewriting: {Path}", context.Request.Path);
+        }
+        else
+        {
+            // If a subdomain is detected via hostname, prioritize it and rewrite to /Menu
+            // This handles direct navigation to subdomain.res-menu.duckdns.org/any/path
+            // We are assuming that any path on a subdomain should show the menu.
+            // If there are other specific paths on subdomains (e.g., /api/...) they would need special handling here.
+
+            logger.LogInformation("Changing request path to include subdomain: {Subdomain}", detectedSubdomain);
+            
+            context.Request.Path = $"/Menu/{detectedSubdomain}"; // Force path to /Menu/subdomain
+            context.Items["Subdomain"] = detectedSubdomain; // Set for MenuModel
+            
+            // Also add it as a query parameter, as MenuModel also checks this.
+            // This makes the MenuModel's logic more robust if HttpContext.Items isn't read as expected
+            // or if the route parameter isn't picked up as expected.
+            context.Request.QueryString = QueryString.Create("subdomain", detectedSubdomain);
+
+            logger.LogInformation(
+                "Subdomain Middleware - Request rewritten for subdomain. New Path: {NewPath}, Subdomain Item: {SubdomainItem}, QueryString: {QueryString}",
+                context.Request.Path,
+                context.Items["Subdomain"],
+                context.Request.QueryString.ToString()
+            );
+        }
     }
     else if (isLocalhost && context.Request.Path.StartsWithSegments("/Menu", StringComparison.OrdinalIgnoreCase) && context.Request.Query.ContainsKey("subdomain"))
     {

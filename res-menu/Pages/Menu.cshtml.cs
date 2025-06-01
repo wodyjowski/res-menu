@@ -62,9 +62,12 @@ public class MenuModel : PageModel
             .FirstOrDefaultAsync(r => r.Subdomain.ToLower() == subdomain.ToLower());
     }
 
-    public async Task<IActionResult> OnGetAsync()
+    public async Task<IActionResult> OnGetAsync(string? subdomain)
     {
-        var subdomain = HttpContext.Items["Subdomain"] as string;
+        if (string.IsNullOrEmpty(subdomain))
+        {
+            subdomain = HttpContext.Items["Subdomain"] as string;
+        }
         
         if (string.IsNullOrEmpty(subdomain))
         {
@@ -87,9 +90,12 @@ public class MenuModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostCreateOrderAsync()
+    public async Task<IActionResult> OnPostCreateOrderAsync(string? subdomain)
     {
-        var subdomain = HttpContext.Items["Subdomain"] as string;
+        if (string.IsNullOrEmpty(subdomain))
+        {
+            subdomain = HttpContext.Items["Subdomain"] as string;
+        }
         
         if (string.IsNullOrEmpty(subdomain))
         {
@@ -124,7 +130,9 @@ public class MenuModel : PageModel
                 TableNumber = OrderForm.TableNumber,
                 Notes = OrderForm.Notes,
                 RestaurantId = Restaurant.Id,
-                CustomerOrderId = Guid.NewGuid().ToString()
+                CustomerOrderId = Guid.NewGuid().ToString(),
+                CreatedAt = DateTime.UtcNow,
+                Status = OrderStatus.Pending
             };
 
             foreach (var item in OrderForm.Items.Where(i => i.Quantity > 0))
@@ -148,6 +156,7 @@ public class MenuModel : PageModel
                 return Page();
             }
 
+            order.TotalAmount = order.OrderItems.Sum(item => item.UnitPrice * item.Quantity);
             var createdOrder = await _orderService.CreateOrderAsync(order);
             
             // Store the customer order ID in a cookie for tracking

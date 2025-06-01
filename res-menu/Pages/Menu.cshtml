@@ -363,9 +363,16 @@
         <div class="container text-center">
             &copy; @DateTime.Now.Year - Powered by Restaurant Menu System
         </div>
-    </footer>    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    </footer>
+
+    <button class="theme-switch" onclick="toggleTheme()" title="Toggle theme">
+        <i class="bi bi-moon-fill"></i>
+    </button>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/theme.js" asp-append-version="true"></script>
     
     <script>
         let cart = [];
