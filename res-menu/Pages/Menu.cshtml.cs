@@ -194,10 +194,8 @@ public class MenuModel : PageModel
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Lax
-            });
-
-            TempData["SuccessMessage"] = "Your order has been placed successfully!";
-            return RedirectToPage("/Order/Status", new { customerOrderId = createdOrder.CustomerOrderId });
+            });            TempData["SuccessMessage"] = "Your order has been placed successfully!";
+            return RedirectToPage("/Order/Status", new { customerOrderId = createdOrder.CustomerOrderId, subdomain = subdomain });
         }
         catch (Exception ex)
         {

@@ -18,10 +18,14 @@ public class StatusModel : PageModel
         _logger = logger;
     }
 
-    public res_menu.Models.Order? Order { get; set; }
-
-    public async Task<IActionResult> OnGetAsync(string? customerOrderId)
+    public res_menu.Models.Order? Order { get; set; }    public async Task<IActionResult> OnGetAsync(string? customerOrderId, string? subdomain)
     {
+        // Store subdomain in HttpContext.Items for consistency
+        if (!string.IsNullOrEmpty(subdomain))
+        {
+            HttpContext.Items["Subdomain"] = subdomain;
+        }
+
         // If no customerOrderId provided, try to get from cookie
         if (string.IsNullOrEmpty(customerOrderId))
         {
