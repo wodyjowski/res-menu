@@ -6,7 +6,8 @@ services:
     image: "ghcr.io/wodyjowski/res-menu:master"
     ports:
       - "8888:8888"
-      - "443:443"    volumes:
+      - "443:443"
+    volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - dataprotection_keys:/home/app/.aspnet/DataProtection-Keys
     environment:
