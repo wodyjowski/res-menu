@@ -1,4 +1,5 @@
 @page "/Menu/{subdomain?}"
+@using res_menu.Models
 @model res_menu.Pages.MenuModel
 @{
     ViewData["Title"] = Model.Restaurant?.Name ?? "Menu";
@@ -118,7 +119,6 @@
             font-weight: 700;
             margin: 0 0 1rem 0; /* Remove top margin, keep bottom margin */
             font-size: 2.5rem; /* Slightly larger font size */
-            background-color: var(--primary-subtle-bg); /* Added subtle background */
             padding: 0.5rem 1rem; /* Added padding for the background */
             border-radius: 5px; /* Added rounded corners for the background */
             display: inline-block; /* Back to inline-block so background wraps text */
@@ -216,7 +216,7 @@
                     }
                 </div>
             </div>            <div class="container">
-                @if (!Model.MenuItems.Any())
+                @if (Model.MenuItems == null || !Model.MenuItems.Any())
                 {
                     <div class="alert alert-info text-center">
                         <i class="bi bi-info-circle me-2"></i>Menu items coming soon!
@@ -227,18 +227,18 @@
                     <div class="row">
                         <div class="col-lg-8">
                             @{
-                                var categories = Model.MenuItems
+                                var categories = Model.MenuItems?
                                     .Where(m => m.IsAvailable)
                                     .Select(m => m.Category)
                                     .Distinct()
-                                    .OrderBy(c => c);
+                                    .OrderBy(c => c) ?? Enumerable.Empty<string>();
                             }
 
                             @foreach (var category in categories)
                             {
-                                var categoryItems = Model.MenuItems
+                                var categoryItems = Model.MenuItems?
                                     .Where(m => m.Category == category && m.IsAvailable)
-                                    .OrderBy(m => m.Name);
+                                    .OrderBy(m => m.Name) ?? Enumerable.Empty<MenuItem>();
 
                                 <div class="menu-category mb-5">
                                     <h2>@category</h2>
