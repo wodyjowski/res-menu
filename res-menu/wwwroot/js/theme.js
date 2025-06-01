@@ -1,27 +1,54 @@
 function toggleTheme() {
-    const body = document.body;
-    const isDarkTheme = body.classList.contains('dark-theme');
-    const themeIcon = document.getElementById('theme-icon');
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const themeIcon = document.querySelector('.theme-switch i');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-    if (isDarkTheme) {
-        body.classList.remove('dark-theme');
-        themeIcon.textContent = '🌙';
-        localStorage.setItem('theme', 'light');
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Update icon
+    if (newTheme === 'dark') {
+        themeIcon.classList.remove('bi-moon-fill');
+        themeIcon.classList.add('bi-sun-fill');
     } else {
-        body.classList.add('dark-theme');
-        themeIcon.textContent = '☀️';
-        localStorage.setItem('theme', 'dark');
+        themeIcon.classList.remove('bi-sun-fill');
+        themeIcon.classList.add('bi-moon-fill');
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('theme');
-    const themeIcon = document.getElementById('theme-icon');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const html = document.documentElement;
+    const themeIcon = document.querySelector('.theme-switch i');
     
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.body.classList.add('dark-theme');
-        themeIcon.textContent = '☀️';
+    const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+    html.setAttribute('data-theme', theme);
+    
+    // Set initial icon
+    if (theme === 'dark') {
+        themeIcon.classList.remove('bi-moon-fill');
+        themeIcon.classList.add('bi-sun-fill');
     } else {
-        themeIcon.textContent = '🌙';
+        themeIcon.classList.remove('bi-sun-fill');
+        themeIcon.classList.add('bi-moon-fill');
     }
+    
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (!localStorage.getItem('theme')) {
+            const newTheme = e.matches ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            
+            // Update icon
+            if (newTheme === 'dark') {
+                themeIcon.classList.remove('bi-moon-fill');
+                themeIcon.classList.add('bi-sun-fill');
+            } else {
+                themeIcon.classList.remove('bi-sun-fill');
+                themeIcon.classList.add('bi-moon-fill');
+            }
+        }
+    });
 }); 

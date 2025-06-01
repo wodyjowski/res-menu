@@ -1,102 +1,156 @@
-:root {
-    --dark-bg: #1a1a1a;
-    --darker-bg: #121212;
-    --dark-card: #242424;
-    --dark-text: #e0e0e0;
-    --dark-text-muted: #a0a0a0;
-    --dark-border: #333333;
-    --dark-primary: #0d6efd;
-    --dark-primary-hover: #0b5ed7;
+/* Theme variables */
+:root[data-theme="dark"] {
+    --background: #1a1a1a;
+    --background-darker: #121212;
+    --card-bg: #242424;
+    --text: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --border: #333333;
+    --primary: #0d6efd;
+    --primary-hover: #0b5ed7;
 }
 
-body.dark-theme {
-    background-color: var(--dark-bg);
-    color: var(--dark-text);
+:root[data-theme="light"] {
+    --background: #ffffff;
+    --background-darker: #f8f9fa;
+    --card-bg: #ffffff;
+    --text: #212529;
+    --text-muted: #6c757d;
+    --border: #dee2e6;
+    --primary: #0d6efd;
+    --primary-hover: #0b5ed7;
 }
 
-.dark-theme .navbar {
-    background-color: var(--darker-bg) !important;
-    border-bottom: 1px solid var(--dark-border);
+/* Base styles */
+body {
+    background-color: var(--background);
+    color: var(--text);
 }
 
-.dark-theme .navbar-brand,
-.dark-theme .nav-link {
-    color: var(--dark-text) !important;
+/* Navbar */
+.navbar {
+    background-color: var(--background-darker) !important;
+    border-bottom: 1px solid var(--border);
 }
 
-.dark-theme .nav-link:hover {
-    color: var(--dark-primary) !important;
+.navbar-brand,
+.nav-link {
+    color: var(--text) !important;
 }
 
-.dark-theme .card {
-    background-color: var(--dark-card);
-    border-color: var(--dark-border);
-    color: var(--dark-text);
+.nav-link:hover {
+    color: var(--primary) !important;
 }
 
-.dark-theme .card-title {
-    color: var(--dark-text);
+/* Cards */
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--border);
+    color: var(--text);
 }
 
-.dark-theme .text-muted {
-    color: var(--dark-text-muted) !important;
+.card-header {
+    background-color: var(--card-bg);
+    border-bottom-color: var(--border);
 }
 
-.dark-theme .btn-outline-primary {
-    color: var(--dark-primary);
-    border-color: var(--dark-primary);
+.card-footer {
+    background-color: var(--card-bg);
+    border-top-color: var(--border);
 }
 
-.dark-theme .btn-outline-primary:hover {
-    background-color: var(--dark-primary);
+.card-title {
+    color: var(--text);
+}
+
+/* Text utilities */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Buttons */
+.btn-outline-primary {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary);
     color: white;
 }
 
-.dark-theme .form-control {
-    background-color: var(--darker-bg);
-    border-color: var(--dark-border);
-    color: var(--dark-text);
+/* Forms */
+.form-control {
+    background-color: var(--background-darker);
+    border-color: var(--border);
+    color: var(--text);
 }
 
-.dark-theme .form-control:focus {
-    background-color: var(--darker-bg);
-    color: var(--dark-text);
-    border-color: var(--dark-primary);
+.form-control:focus {
+    background-color: var(--background-darker);
+    color: var(--text);
+    border-color: var(--primary);
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
-.dark-theme .input-group-text {
-    background-color: var(--dark-card);
-    border-color: var(--dark-border);
-    color: var(--dark-text);
+.input-group-text {
+    background-color: var(--card-bg);
+    border-color: var(--border);
+    color: var(--text);
 }
 
-.dark-theme .table {
-    color: var(--dark-text);
+/* Tables */
+.table {
+    color: var(--text) !important;
+    --bs-table-bg: var(--card-bg);
+    --bs-table-color: var(--text) !important;
+    background-color: var(--card-bg);
 }
 
-.dark-theme .table td,
-.dark-theme .table th {
-    border-color: var(--dark-border);
+.table td,
+.table th {
+    color: var(--text) !important;
+    border-color: var(--border);
+    background-color: var(--card-bg);
 }
 
-.dark-theme .modal-content {
-    background-color: var(--dark-card);
-    border-color: var(--dark-border);
+.table thead th {
+    color: var(--text) !important;
+    background-color: var(--card-bg);
+    border-color: var(--border);
 }
 
-.dark-theme .modal-header {
-    border-bottom-color: var(--dark-border);
+.table tbody tr {
+    color: var(--text) !important;
+    background-color: var(--card-bg);
 }
 
-.dark-theme .modal-footer {
-    border-top-color: var(--dark-border);
+.table tfoot th {
+    color: var(--text) !important;
+    background-color: var(--card-bg);
+    border-color: var(--border);
 }
 
-.dark-theme .list-unstyled {
-    color: var(--dark-text);
+/* Modals */
+.modal-content {
+    background-color: var(--card-bg);
+    border-color: var(--border);
 }
 
+.modal-header {
+    border-bottom-color: var(--border);
+}
+
+.modal-footer {
+    border-top-color: var(--border);
+}
+
+/* Lists */
+.list-unstyled {
+    color: var(--text);
+}
+
+/* Theme switch button */
 .theme-switch {
     position: fixed;
     bottom: 20px;
@@ -104,7 +158,7 @@ body.dark-theme {
     z-index: 1000;
     padding: 10px;
     border-radius: 50%;
-    background-color: var(--dark-primary);
+    background-color: var(--primary);
     color: white;
     border: none;
     cursor: pointer;
@@ -114,163 +168,53 @@ body.dark-theme {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background-color 0.2s ease;
 }
 
 .theme-switch:hover {
-    background-color: var(--dark-primary-hover);
+    background-color: var(--primary-hover);
 }
 
-/* Dark theme variables */
-:root[data-theme="dark"] {
-    --primary: #60a5fa;
-    --primary-hover: #3b82f6;
-    --background: #1a1a1a;
-    --card-bg: #242424;
-    --text: #ffffff;
-    --text-secondary: #e5e7eb;
-    --text-muted: #d1d5db;
-    --border: #404040;
+/* Dropdowns */
+.dropdown-menu {
+    background-color: var(--card-bg);
+    border-color: var(--border);
 }
 
-/* Light theme variables */
-:root[data-theme="light"] {
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
-    --background: #f8fafc;
-    --card-bg: #ffffff;
-    --text: #1a1a1a; /* Ensure this is a dark color for light backgrounds */
-    --text-secondary: #4b5563;
-    --text-muted: #6b7280;
-    --border: #e5e7eb;
-}
-
-/* Base text color for all elements */
-[data-theme="dark"] {
+.dropdown-item {
     color: var(--text);
 }
 
-[data-theme="dark"] h1,
-[data-theme="dark"] h2,
-[data-theme="dark"] h3,
-[data-theme="dark"] h4,
-[data-theme="dark"] h5,
-[data-theme="dark"] h6,
-[data-theme="dark"] .h1,
-[data-theme="dark"] .h2,
-[data-theme="dark"] .h3,
-[data-theme="dark"] .h4,
-[data-theme="dark"] .h5,
-[data-theme="dark"] .h6 {
-    color: var(--text) !important;
-}
-
-[data-theme="dark"] p {
-    color: var(--text-secondary);
-}
-
-[data-theme="dark"] .text-muted {
-    color: var(--text-muted) !important;
-}
-
-[data-theme="dark"] .card {
+.dropdown-item:hover {
+    background-color: var(--background);
     color: var(--text);
 }
 
-[data-theme="dark"] .card-title,
-[data-theme="dark"] .card h3,
-[data-theme="dark"] .card h4,
-[data-theme="dark"] .card .h3,
-[data-theme="dark"] .card .h4 {
-    color: var(--text) !important;
+.dropdown-divider {
+    border-color: var(--border);
 }
 
-[data-theme="dark"] .card p {
-    color: var(--text-secondary) !important;
+/* Progress bars */
+.progress {
+    background-color: var(--border);
 }
 
-/* Improved table theming for both theme systems */
-.dark-theme .table,
-[data-theme="dark"] .table {
-    color: var(--dark-text, var(--text));
-    --bs-table-bg: var(--dark-card, var(--card-bg));
-    background-color: var(--dark-card, var(--card-bg));
+/* Alerts */
+.alert {
+    background-color: var(--card-bg);
+    border-color: var(--border);
+    color: var(--text);
 }
 
-.dark-theme .table td,
-.dark-theme .table th,
-[data-theme="dark"] .table td,
-[data-theme="dark"] .table th {
-    border-color: var(--dark-border, var(--border));
-    background-color: var(--dark-card, var(--card-bg));
+/* Bootstrap overrides for both themes */
+.bg-light {
+    background-color: var(--background-darker) !important;
 }
 
-.dark-theme .table thead th,
-[data-theme="dark"] .table thead th {
-    background-color: var(--dark-card, var(--card-bg));
-    color: var(--dark-text, var(--text));
+.bg-white {
+    background-color: var(--card-bg) !important;
 }
 
-.dark-theme .table tbody tr,
-[data-theme="dark"] .table tbody tr {
-    background-color: var(--dark-card, var(--card-bg));
-}
-
-.dark-theme .table tfoot th,
-[data-theme="dark"] .table tfoot th {
-    background-color: var(--dark-card, var(--card-bg));
-    color: var(--dark-text, var(--text));
-}
-
-/* Card theming improvements */
-.dark-theme .card,
-[data-theme="dark"] .card {
-    background-color: var(--dark-card, var(--card-bg));
-    border-color: var(--dark-border, var(--border));
-    color: var(--dark-text, var(--text));
-}
-
-.dark-theme .card-body,
-.dark-theme .card-header,
-.dark-theme .card-footer,
-[data-theme="dark"] .card-body,
-[data-theme="dark"] .card-header,
-[data-theme="dark"] .card-footer {
-    background-color: var(--dark-card, var(--card-bg));
-    color: var(--dark-text, var(--text));
-}
-
-.dark-theme .card-header,
-[data-theme="dark"] .card-header {
-    border-bottom-color: var(--dark-border, var(--border));
-}
-
-/* Alert theming */
-.dark-theme .alert,
-[data-theme="dark"] .alert {
-    background-color: var(--dark-card, var(--card-bg));
-    border-color: var(--dark-border, var(--border));
-    color: var(--dark-text, var(--text));
-}
-
-/* Dropdown theming */
-.dark-theme .dropdown-menu,
-[data-theme="dark"] .dropdown-menu {
-    background-color: var(--dark-card, var(--card-bg));
-    border-color: var(--dark-border, var(--border));
-}
-
-.dark-theme .dropdown-item,
-[data-theme="dark"] .dropdown-item {
-    color: var(--dark-text, var(--text));
-}
-
-.dark-theme .dropdown-item:hover,
-[data-theme="dark"] .dropdown-item:hover {
-    background-color: var(--dark-bg, var(--background));
-}
-
-/* Progress bar theming */
-.dark-theme .progress,
-[data-theme="dark"] .progress {
-    background-color: var(--dark-border, var(--border));
+.border {
+    border-color: var(--border) !important;
 }

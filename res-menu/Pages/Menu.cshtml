@@ -299,7 +299,9 @@
     <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content" style="background-color: var(--card-bg); color: var(--text);">
-                <form method="post" asp-page-handler="CreateOrder" asp-route-subdomain="@(ViewContext.RouteData.Values["subdomain"] ?? ViewContext.HttpContext.Request.Query["subdomain"].FirstOrDefault())">
+                <form method="post" 
+                      asp-page-handler="CreateOrder" 
+                      asp-route-subdomain="@Model.Restaurant.Subdomain">
                     <div class="modal-header">
                         <h5 class="modal-title" id="orderModalLabel">Complete Your Order</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
