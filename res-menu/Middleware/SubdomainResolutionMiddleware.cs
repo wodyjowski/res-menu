@@ -71,16 +71,24 @@ public class SubdomainResolutionMiddleware
                 path.EndsWith(".woff2") ||
                 path.EndsWith(".ttf") ||
                 path.EndsWith(".eot")
-            );
-
-            if (!isStaticFile)
+            );            if (!isStaticFile)
             {
-                // Only rewrite non-static file requests to /Menu/{subdomain}
-                logger.LogInformation("Changing request path to include subdomain: {Subdomain}", detectedSubdomain);
-                context.Request.Path = $"/Menu/{detectedSubdomain}";
+                // Only rewrite if the path doesn't already contain the subdomain
+                var currentPath = context.Request.Path.Value?.ToLower();
+                var expectedPath = $"/menu/{detectedSubdomain.ToLower()}";
+                
+                if (currentPath != expectedPath)
+                {
+                    logger.LogInformation("Changing request path from {CurrentPath} to include subdomain: {Subdomain}", currentPath, detectedSubdomain);
+                    context.Request.Path = $"/Menu/{detectedSubdomain}";
+                }
+                else
+                {
+                    logger.LogInformation("Path already correctly formatted for subdomain: {Path}", currentPath);
+                }
                 
                 logger.LogInformation(
-                    "Subdomain Middleware - Request rewritten for subdomain. New Path: {NewPath}, Subdomain Item: {SubdomainItem}, QueryString: {QueryString}",
+                    "Subdomain Middleware - Request processed for subdomain. Path: {Path}, Subdomain Item: {SubdomainItem}, QueryString: {QueryString}",
                     context.Request.Path,
                     context.Items["Subdomain"],
                     context.Request.QueryString.ToString()
