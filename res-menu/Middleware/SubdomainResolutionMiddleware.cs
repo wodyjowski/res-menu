@@ -15,13 +15,96 @@ public class SubdomainResolutionMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var subdomain = ResolveSubdomain(context);
-        if (!string.IsNullOrEmpty(subdomain))
+        var logger = _logger;
+        var host = context.Request.Host.Host.ToLower();
+        var isLocalhost = host == "localhost" || host.StartsWith("127.") || host.StartsWith("192.168.") || host.StartsWith("10.");
+        
+        logger.LogInformation(
+            "Subdomain Middleware - Incoming Request - Host: {Host}, Path: {Path}, IsLocalhost: {IsLocalhost}",
+            host,
+            context.Request.Path,
+            isLocalhost
+        );
+        
+        string? detectedSubdomain = null;
+
+        // Check if we're on a subdomain of res-menu.duckdns.org
+        if (!isLocalhost && host.EndsWith("res-menu.duckdns.org") && host != "res-menu.duckdns.org")
         {
-            context.Items["Subdomain"] = subdomain;
-            _logger.LogInformation("Resolved subdomain: {Subdomain}", subdomain);
+            var parts = host.Split('.');
+            if (parts.Length > 2 && parts[0] != "www") // e.g. zxc.res-menu.duckdns.org
+            {
+                detectedSubdomain = parts[0];
+                logger.LogInformation(
+                    "Subdomain Middleware - Subdomain detected from host: {Subdomain}, Original Path: {OriginalPath}",
+                    detectedSubdomain,
+                    context.Request.Path
+                );
+            }
         }
 
+        if (!string.IsNullOrEmpty(detectedSubdomain))
+        {
+            // Always store the subdomain in HttpContext.Items and query string
+            context.Items["Subdomain"] = detectedSubdomain;
+            var queryString = context.Request.QueryString.Add("subdomain", detectedSubdomain);
+            context.Request.QueryString = queryString;
+
+            // Check if this is a static file request
+            var path = context.Request.Path.Value?.ToLower();
+            var isStaticFile = !string.IsNullOrEmpty(path) && (
+                path.StartsWith("/lib/") ||
+                path.StartsWith("/css/") ||
+                path.StartsWith("/js/") ||
+                path.StartsWith("/images/") ||
+                path.StartsWith("/uploads/") ||
+                path.StartsWith("/favicon.ico") ||
+                path.EndsWith(".css") ||
+                path.EndsWith(".js") ||
+                path.EndsWith(".png") ||
+                path.EndsWith(".jpg") ||
+                path.EndsWith(".jpeg") ||
+                path.EndsWith(".gif") ||
+                path.EndsWith(".svg") ||
+                path.EndsWith(".ico") ||
+                path.EndsWith(".woff") ||
+                path.EndsWith(".woff2") ||
+                path.EndsWith(".ttf") ||
+                path.EndsWith(".eot")
+            );
+
+            if (!isStaticFile)
+            {
+                // Only rewrite non-static file requests to /Menu/{subdomain}
+                logger.LogInformation("Changing request path to include subdomain: {Subdomain}", detectedSubdomain);
+                context.Request.Path = $"/Menu/{detectedSubdomain}";
+                
+                logger.LogInformation(
+                    "Subdomain Middleware - Request rewritten for subdomain. New Path: {NewPath}, Subdomain Item: {SubdomainItem}, QueryString: {QueryString}",
+                    context.Request.Path,
+                    context.Items["Subdomain"],
+                    context.Request.QueryString.ToString()
+                );
+            }
+            else
+            {
+                logger.LogInformation("Static file request detected, not rewriting path: {Path}", path);
+            }
+        }
+        else if (isLocalhost && context.Request.Path.StartsWithSegments("/Menu", StringComparison.OrdinalIgnoreCase))
+        {
+            // For localhost testing
+            var subdomainParam = context.Request.Query["subdomain"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(subdomainParam))
+            {
+                context.Items["Subdomain"] = subdomainParam;
+                logger.LogInformation(
+                    "Subdomain Middleware - Localhost /Menu?subdomain=... detected. Set HttpContext.Items[\"Subdomain\"] = {Subdomain}",
+                    subdomainParam
+                );
+            }
+        }
+        
         await _next(context);
     }
 
