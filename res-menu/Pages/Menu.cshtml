@@ -308,10 +308,10 @@
 
     <!-- Order Form Modal -->
     <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">            <div class="modal-content" style="background-color: var(--card-bg); color: var(--text);">
-                <form method="post" 
+        <div class="modal-dialog modal-lg">            <div class="modal-content" style="background-color: var(--card-bg); color: var(--text);">                <form method="post" 
                       asp-page-handler="CreateOrder" 
-                      asp-route-subdomain="@(Model.Restaurant?.Subdomain ?? ViewContext.HttpContext.Items["Subdomain"] ?? ViewContext.HttpContext.Request.Query["subdomain"].FirstOrDefault())">>
+                      asp-route-subdomain="@(Model.Restaurant?.Subdomain ?? ViewContext.HttpContext.Items["Subdomain"] ?? ViewContext.HttpContext.Request.Query["subdomain"].FirstOrDefault())"
+                      onsubmit="clearCartOnSubmit()">>
                     <div class="modal-header">
                         <h5 class="modal-title" id="orderModalLabel">Complete Your Order</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -524,14 +524,20 @@
         // Save cart to localStorage whenever it changes
         function saveCart() {
             localStorage.setItem('cart', JSON.stringify(cart));
-        }
-
-        // Override updateCartDisplay to save cart
+        }        // Override updateCartDisplay to save cart
         const originalUpdateCartDisplay = updateCartDisplay;
         updateCartDisplay = function() {
             originalUpdateCartDisplay();
             saveCart();
         };
+
+        // Clear cart when order form is submitted
+        function clearCartOnSubmit() {
+            // Clear the cart array and localStorage
+            cart = [];
+            localStorage.removeItem('cart');
+            updateCartDisplay();
+        }
     </script>
 </body>
 </html>

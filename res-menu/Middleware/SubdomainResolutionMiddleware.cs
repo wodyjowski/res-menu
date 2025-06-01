@@ -73,18 +73,33 @@ public class SubdomainResolutionMiddleware
                 path.EndsWith(".eot")
             );            if (!isStaticFile)
             {
-                // Only rewrite if the path doesn't already contain the subdomain
                 var currentPath = context.Request.Path.Value?.ToLower();
-                var expectedPath = $"/menu/{detectedSubdomain.ToLower()}";
                 
-                if (currentPath != expectedPath)
+                // Handle Menu pages - rewrite to include subdomain if needed
+                if (currentPath?.StartsWith("/menu") == true)
                 {
-                    logger.LogInformation("Changing request path from {CurrentPath} to include subdomain: {Subdomain}", currentPath, detectedSubdomain);
-                    context.Request.Path = $"/Menu/{detectedSubdomain}";
+                    var expectedPath = $"/menu/{detectedSubdomain.ToLower()}";
+                    
+                    if (currentPath != expectedPath)
+                    {
+                        logger.LogInformation("Changing request path from {CurrentPath} to include subdomain: {Subdomain}", currentPath, detectedSubdomain);
+                        context.Request.Path = $"/Menu/{detectedSubdomain}";
+                    }
+                    else
+                    {
+                        logger.LogInformation("Path already correctly formatted for subdomain: {Path}", currentPath);
+                    }
                 }
+                // Handle Order pages - preserve subdomain context but don't rewrite path
+                else if (currentPath?.StartsWith("/order") == true)
+                {
+                    logger.LogInformation("Order page accessed with subdomain context: {Subdomain}, Path: {Path}", detectedSubdomain, currentPath);
+                }
+                // Handle other pages - rewrite to Menu
                 else
                 {
-                    logger.LogInformation("Path already correctly formatted for subdomain: {Path}", currentPath);
+                    logger.LogInformation("Redirecting unknown path to Menu for subdomain: {Subdomain}, Path: {CurrentPath}", detectedSubdomain, currentPath);
+                    context.Request.Path = $"/Menu/{detectedSubdomain}";
                 }
                 
                 logger.LogInformation(
