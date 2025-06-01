@@ -60,32 +60,48 @@ public class MenuModel : PageModel
         return await _context.Restaurants
             .Include(r => r.MenuItems)
             .FirstOrDefaultAsync(r => r.Subdomain.ToLower() == subdomain.ToLower());
-    }
-
-    public async Task<IActionResult> OnGetAsync(string? subdomain)
+    }    public async Task<IActionResult> OnGetAsync(string? subdomain)
     {
+        _logger.LogInformation("OnGetAsync called with subdomain parameter: {Subdomain}", subdomain);
+        _logger.LogInformation("HttpContext.Items['Subdomain']: {SubdomainItem}", HttpContext.Items["Subdomain"]);
+        _logger.LogInformation("Query string subdomain: {QuerySubdomain}", HttpContext.Request.Query["subdomain"].FirstOrDefault());
+        
         if (string.IsNullOrEmpty(subdomain))
         {
             subdomain = HttpContext.Items["Subdomain"] as string;
+            _logger.LogInformation("Using subdomain from HttpContext.Items: {Subdomain}", subdomain);
         }
         
         if (string.IsNullOrEmpty(subdomain))
         {
+            subdomain = HttpContext.Request.Query["subdomain"].FirstOrDefault();
+            _logger.LogInformation("Using subdomain from query string: {Subdomain}", subdomain);
+        }
+        
+        if (string.IsNullOrEmpty(subdomain))
+        {
+            _logger.LogWarning("No subdomain found in any source");
             return await HandleRestaurantNotFound(subdomain);
         }
 
+        _logger.LogInformation("Looking for restaurant with subdomain: {Subdomain}", subdomain);
         Restaurant = await GetRestaurantBySubdomain(subdomain);
 
         if (Restaurant == null)
         {
+            _logger.LogWarning("Restaurant not found for subdomain: {Subdomain}", subdomain);
             return await HandleRestaurantNotFound(subdomain);
         }
 
+        _logger.LogInformation("Found restaurant: {RestaurantName} with {MenuItemCount} menu items", Restaurant.Name, Restaurant.MenuItems?.Count ?? 0);
+
         MenuItems = Restaurant.MenuItems
-            .Where(m => m.IsAvailable)
+            ?.Where(m => m.IsAvailable)
             .OrderBy(m => m.Category)
             .ThenBy(m => m.Name)
-            .ToList();
+            .ToList() ?? new List<MenuItem>();
+
+        _logger.LogInformation("Filtered to {AvailableItemCount} available menu items", MenuItems.Count);
 
         return Page();
     }

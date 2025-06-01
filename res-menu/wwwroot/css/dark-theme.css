@@ -3,9 +3,9 @@
     --background: #1a1a1a;
     --background-darker: #121212;
     --card-bg: #242424;
-    --text: #e0e0e0;
-    --text-muted: #a0a0a0;
-    --text-secondary: #b0b0b0;
+    --text: #ffffff;
+    --text-muted: #b5b5b5;
+    --text-secondary: #d0d0d0;
     --border: #333333;
     --primary: #0d6efd;
     --primary-hover: #0b5ed7;
@@ -235,4 +235,34 @@ body {
     .nav-link {
         color: var(--text) !important;
     }
+}
+
+/* Footer specific styles */
+[data-theme="dark"] .footer {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .footer .text-center {
+    color: var(--text) !important;
+}
+
+/* Heading styles */
+[data-theme="dark"] h1,
+[data-theme="dark"] .h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] .h2 {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] h1.restaurant-name {
+    color: var(--text) !important;
+    background-color: var(--primary-subtle-bg);
+}
+
+[data-theme="dark"] .navbar-brand {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .menu-category h2 {
+    color: var(--text) !important;
 }
