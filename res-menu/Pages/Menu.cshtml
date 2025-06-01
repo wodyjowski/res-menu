@@ -216,7 +216,7 @@
                     }
                 </div>
             </div>            <div class="container">
-                @if (Model.MenuItems == null || !Model.MenuItems.Any())
+                @if (Model.Restaurant == null || Model.MenuItems == null || !Model.MenuItems.Any())
                 {
                     <div class="alert alert-info text-center">
                         <i class="bi bi-info-circle me-2"></i>Menu items coming soon!
@@ -227,47 +227,61 @@
                     <div class="row">
                         <div class="col-lg-8">
                             @{
-                                var categories = Model.MenuItems?
-                                    .Where(m => m.IsAvailable)
+                                var categories = Model.MenuItems
+                                    .Where(m => m != null && m.IsAvailable && m.Category != null)
                                     .Select(m => m.Category)
                                     .Distinct()
-                                    .OrderBy(c => c) ?? Enumerable.Empty<string>();
+                                    .OrderBy(c => c)
+                                    .ToList();
                             }
 
-                            @foreach (var category in categories)
+                            @if (!categories.Any())
                             {
-                                var categoryItems = Model.MenuItems?
-                                    .Where(m => m.Category == category && m.IsAvailable)
-                                    .OrderBy(m => m.Name) ?? Enumerable.Empty<MenuItem>();
-
-                                <div class="menu-category mb-5">
-                                    <h2>@category</h2>
-                                    <div class="row g-4">
-                                        @foreach (var item in categoryItems)
-                                        {
-                                            <div class="col-md-6">
-                                                <div class="menu-item">
-                                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
-                                                    {
-                                                        <img src="@item.ImageUrl" alt="@item.Name" class="img-fluid" />
-                                                    }
-                                                    <div class="p-3">
-                                                        <h3 class="menu-item-title">@item.Name</h3>
-                                                        <p class="menu-item-description">@item.Description</p>
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <div class="price">@item.Price.ToString("C", new System.Globalization.CultureInfo("pl-PL"))</div>
-                                                            <button type="button" 
-                                                                    class="btn btn-add-to-cart btn-sm" 
-                                                                    onclick="addToCart(@item.Id, '@Html.Raw(Html.Encode(item.Name))', @item.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
-                                                                <i class="bi bi-plus-circle me-1"></i>Add to Order
-                                                            </button>
+                                <div class="alert alert-info text-center">
+                                    <i class="bi bi-info-circle me-2"></i>No menu items available at the moment.
+                                </div>
+                            }
+                            else
+                            {
+                                @foreach (var category in categories)
+                                {
+                                    var categoryItems = Model.MenuItems
+                                        .Where(m => m != null && m.IsAvailable && m.Category == category)
+                                        .OrderBy(m => m.Name)
+                                        .ToList();
+                                    
+                                    if (categoryItems.Any())
+                                    {
+                                        <div class="menu-category mb-5">
+                                            <h2>@category</h2>
+                                            <div class="row g-4">
+                                                @foreach (var item in categoryItems)
+                                                {
+                                                    <div class="col-md-6">
+                                                        <div class="menu-item">
+                                                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                                            {
+                                                                <img src="@item.ImageUrl" alt="@item.Name" class="img-fluid" />
+                                                            }
+                                                            <div class="p-3">
+                                                                <h3 class="menu-item-title">@item.Name</h3>
+                                                                <p class="menu-item-description">@item.Description</p>
+                                                                <div class="d-flex justify-content-between align-items-center">
+                                                                    <div class="price">@item.Price.ToString("C", new System.Globalization.CultureInfo("pl-PL"))</div>
+                                                                    <button type="button" 
+                                                                            class="btn btn-add-to-cart btn-sm" 
+                                                                            onclick="addToCart(@item.Id, '@Html.Raw(Html.Encode(item.Name))', @item.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
+                                                                        <i class="bi bi-plus-circle me-1"></i>Add to Order
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                }
                                             </div>
-                                        }
-                                    </div>
-                                </div>
+                                        </div>
+                                    }
+                                }
                             }
                         </div>
                         

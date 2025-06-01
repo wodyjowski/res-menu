@@ -62,48 +62,60 @@ public class MenuModel : PageModel
             .FirstOrDefaultAsync(r => r.Subdomain.ToLower() == subdomain.ToLower());
     }    public async Task<IActionResult> OnGetAsync(string? subdomain)
     {
-        _logger.LogInformation("OnGetAsync called with subdomain parameter: {Subdomain}", subdomain);
-        _logger.LogInformation("HttpContext.Items['Subdomain']: {SubdomainItem}", HttpContext.Items["Subdomain"]);
-        _logger.LogInformation("Query string subdomain: {QuerySubdomain}", HttpContext.Request.Query["subdomain"].FirstOrDefault());
-        
-        if (string.IsNullOrEmpty(subdomain))
+        try
         {
-            subdomain = HttpContext.Items["Subdomain"] as string;
-            _logger.LogInformation("Using subdomain from HttpContext.Items: {Subdomain}", subdomain);
+            _logger.LogInformation("OnGetAsync called with subdomain parameter: {Subdomain}", subdomain);
+            _logger.LogInformation("HttpContext.Items['Subdomain']: {SubdomainItem}", HttpContext.Items["Subdomain"]);
+            _logger.LogInformation("Query string subdomain: {QuerySubdomain}", HttpContext.Request.Query["subdomain"].FirstOrDefault());
+            
+            if (string.IsNullOrEmpty(subdomain))
+            {
+                subdomain = HttpContext.Items["Subdomain"] as string;
+                _logger.LogInformation("Using subdomain from HttpContext.Items: {Subdomain}", subdomain);
+            }
+            
+            if (string.IsNullOrEmpty(subdomain))
+            {
+                subdomain = HttpContext.Request.Query["subdomain"].FirstOrDefault();
+                _logger.LogInformation("Using subdomain from query string: {Subdomain}", subdomain);
+            }
+            
+            if (string.IsNullOrEmpty(subdomain))
+            {
+                _logger.LogWarning("No subdomain found in any source");
+                return await HandleRestaurantNotFound(subdomain);
+            }
+
+            _logger.LogInformation("Looking for restaurant with subdomain: {Subdomain}", subdomain);
+            
+            // Explicitly include MenuItems and ensure they are loaded
+            Restaurant = await _context.Restaurants
+                .Include(r => r.MenuItems)
+                .AsNoTracking()  // For better performance since we're only reading
+                .FirstOrDefaultAsync(r => r.Subdomain.ToLower() == subdomain.ToLower());
+
+            if (Restaurant == null)
+            {
+                _logger.LogWarning("Restaurant not found for subdomain: {Subdomain}", subdomain);
+                return await HandleRestaurantNotFound(subdomain);
+            }
+
+            _logger.LogInformation("Found restaurant: {RestaurantName} with {MenuItemCount} menu items", 
+                Restaurant.Name, 
+                Restaurant.MenuItems?.Count ?? 0);
+
+            // Initialize MenuItems as an empty list if null
+            MenuItems = Restaurant.MenuItems?.ToList() ?? new List<MenuItem>();
+            
+            _logger.LogInformation("Loaded {MenuItemCount} menu items", MenuItems.Count);
+
+            return Page();
         }
-        
-        if (string.IsNullOrEmpty(subdomain))
+        catch (Exception ex)
         {
-            subdomain = HttpContext.Request.Query["subdomain"].FirstOrDefault();
-            _logger.LogInformation("Using subdomain from query string: {Subdomain}", subdomain);
+            _logger.LogError(ex, "Error loading menu for subdomain: {Subdomain}", subdomain);
+            throw; // Let the global error handler deal with it
         }
-        
-        if (string.IsNullOrEmpty(subdomain))
-        {
-            _logger.LogWarning("No subdomain found in any source");
-            return await HandleRestaurantNotFound(subdomain);
-        }
-
-        _logger.LogInformation("Looking for restaurant with subdomain: {Subdomain}", subdomain);
-        Restaurant = await GetRestaurantBySubdomain(subdomain);
-
-        if (Restaurant == null)
-        {
-            _logger.LogWarning("Restaurant not found for subdomain: {Subdomain}", subdomain);
-            return await HandleRestaurantNotFound(subdomain);
-        }
-
-        _logger.LogInformation("Found restaurant: {RestaurantName} with {MenuItemCount} menu items", Restaurant.Name, Restaurant.MenuItems?.Count ?? 0);
-
-        MenuItems = Restaurant.MenuItems
-            ?.Where(m => m.IsAvailable)
-            .OrderBy(m => m.Category)
-            .ThenBy(m => m.Name)
-            .ToList() ?? new List<MenuItem>();
-
-        _logger.LogInformation("Filtered to {AvailableItemCount} available menu items", MenuItems.Count);
-
-        return Page();
     }
 
     public async Task<IActionResult> OnPostCreateOrderAsync(string? subdomain)
